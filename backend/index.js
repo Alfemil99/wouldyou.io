@@ -1,16 +1,14 @@
-require("dotenv").config();
-const uri = process.env.MONGODB_URI;
 
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
+const { MongoClient } = require("mongodb");
+require("dotenv").config();
 
 const app = express();
 app.use(cors());
-
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -18,52 +16,38 @@ const io = new Server(server, {
   },
 });
 
-let waitingPlayer = null;
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
+let db, questions, votes;
 
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
-  socket.on("join", (username) => {
-    socket.data.username = username;
-    console.log(username + " joined.");
-  });
-
-  socket.on("rps-choice", ({ user, choice }) => {
-    if (!waitingPlayer) {
-      waitingPlayer = { socket, user, choice };
-    } else {
-      const opponent = waitingPlayer;
-      waitingPlayer = null;
-
-      const result = resolveGame(opponent.choice, choice);
-      const payload = {
-        user1: opponent.user,
-        user2: user,
-        result
-      };
-      opponent.socket.emit("rps-result", payload);
-      socket.emit("rps-result", payload);
-    }
-  });
-
-  socket.on("disconnect", () => {
-    if (waitingPlayer && waitingPlayer.socket.id === socket.id) {
-      waitingPlayer = null;
-    }
-    console.log("User disconnected:", socket.id);
-  });
+client.connect().then(() => {
+  db = client.db("would-you-rather");
+  questions = db.collection("questions");
+  votes = db.collection("votes");
+  console.log("Connected to MongoDB");
 });
 
-function resolveGame(c1, c2) {
-  if (c1 === c2) return "Uafgjort";
-  if ((c1 === "rock" && c2 === "scissors") ||
-      (c1 === "scissors" && c2 === "paper") ||
-      (c1 === "paper" && c2 === "rock")) {
-    return "Spiller 1 vinder";
-  } else {
-    return "Spiller 2 vinder";
-  }
-}
+io.on("connection", (socket) => {
+  socket.on("get-question", async (questionId) => {
+    const q = await questions.findOne({ _id: questionId });
+    socket.emit("question-data", q);
+  });
+
+  socket.on("vote", async ({ questionId, choice }) => {
+    const field = choice === "red" ? "votes_red" : "votes_blue";
+    await votes.updateOne({ question_id: questionId }, { $inc: { [field]: 1 } }, { upsert: true });
+
+    const question = await questions.findOne({ _id: questionId });
+    const result = await votes.findOne({ question_id: questionId });
+
+    socket.emit("vote-result", { 
+      question_red: question.question_red,
+      question_blue: question.question_blue,
+      votes_red: result.votes_red || 0,
+      votes_blue: result.votes_blue || 0
+    });
+  });
+});
 
 server.listen(3001, () => {
   console.log("Server running on port 3001");

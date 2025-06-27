@@ -1,49 +1,43 @@
-
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 const socket = io("https://v-r-backend.onrender.com");
 
-let username = null;
+const questionId = "q1";
+let hasVoted = false;
 
-const emojis = ["🐵", "🧠", "💀", "😈", "👺", "🥷", "🗿"];
 document.body.innerHTML = `
-  <header style="padding: 1rem; background: #222; color: white; font-family: sans-serif;">
-    <div>🧑 Spiller: <span id="user">Venter...</span></div>
-    <div>🪨✂️📄 Valg: 
-      <button onclick="choose('rock')">🪨</button>
-      <button onclick="choose('scissors')">✂️</button>
-      <button onclick="choose('paper')">📄</button>
+  <main style="font-family: sans-serif; text-align: center; padding: 2rem;">
+    <h2 id="question">Loading...</h2>
+    <div id="options" style="margin-top: 2rem;">
+      <button id="btnRed" style="padding: 1rem 2rem; background-color: red; color: white; font-size: 1.2rem; margin-right: 1rem;">🔴</button>
+      <button id="btnBlue" style="padding: 1rem 2rem; background-color: blue; color: white; font-size: 1.2rem;">🔵</button>
     </div>
-    <div id="game-status" style="margin-top: 1rem;"></div>
-  </header>
-  <main style="padding: 1rem; font-family: sans-serif;">
-    <h2>Vælg din emoji-identitet:</h2>
-    <div id="emoji-select"></div>
+    <div id="result" style="margin-top: 2rem; font-size: 1.2rem;"></div>
   </main>
 `;
 
-// Emoji login
-const emojiContainer = document.getElementById("emoji-select");
-emojis.forEach(e => {
-  const btn = document.createElement("button");
-  btn.innerText = e;
-  btn.style.fontSize = "2rem";
-  btn.onclick = () => {
-    username = e;
-    document.getElementById("user").innerText = username;
-    emojiContainer.remove();
-    socket.emit("join", username);
-  };
-  emojiContainer.appendChild(btn);
+socket.emit("get-question", questionId);
+
+socket.on("question-data", (data) => {
+  document.getElementById("question").innerText = `${data.question_red} 🔴 eller 🔵 ${data.question_blue}?`;
 });
 
-// Vælg handling
-window.choose = (choice) => {
-  if (!username) return alert("Vælg en emoji først!");
-  socket.emit("rps-choice", { user: username, choice });
-};
+document.getElementById("btnRed").onclick = () => vote("red");
+document.getElementById("btnBlue").onclick = () => vote("blue");
 
-// Vis resultat
-socket.on("rps-result", (data) => {
-  const status = document.getElementById("game-status");
-  status.innerText = `🆚 ${data.user1} vs ${data.user2} → ${data.result}`;
+function vote(choice) {
+  if (hasVoted) return;
+  hasVoted = true;
+  socket.emit("vote", { questionId, choice });
+}
+
+socket.on("vote-result", (data) => {
+  const total = data.votes_red + data.votes_blue;
+  const redPercent = Math.round((data.votes_red / total) * 100);
+  const bluePercent = 100 - redPercent;
+
+  document.getElementById("options").style.display = "none";
+  document.getElementById("result").innerHTML = `
+    🔴 ${data.question_red}: ${redPercent}% (${data.votes_red} stemmer)<br>
+    🔵 ${data.question_blue}: ${bluePercent}% (${data.votes_blue} stemmer)
+  `;
 });
