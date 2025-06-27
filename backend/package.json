@@ -1,4 +1,3 @@
-
 {
   "name": "io-backend",
   "version": "1.0.0",
@@ -6,7 +5,9 @@
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
+    "mongodb": "^6.17.0",
     "socket.io": "^4.7.4"
   }
 }
