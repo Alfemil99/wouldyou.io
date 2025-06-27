@@ -1,3 +1,5 @@
+require("dotenv").config();
+const uri = process.env.MONGODB_URI;
 
 const express = require("express");
 const http = require("http");
