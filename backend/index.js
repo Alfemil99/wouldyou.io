@@ -1,4 +1,3 @@
-
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
@@ -16,10 +15,16 @@ const io = new Server(server, {
   },
 });
 
+let activePlayers = 0;
+
 io.on("connection", (socket) => {
+  activePlayers++;
+  io.emit("playerCount", activePlayers);
   console.log("User connected:", socket.id);
 
   socket.on("disconnect", () => {
+    activePlayers--;
+    io.emit("playerCount", activePlayers);
     console.log("User disconnected:", socket.id);
   });
 });
