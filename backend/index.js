@@ -29,6 +29,7 @@ const io = new Server(server, {
 // 🔗 MongoDB
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
+
 let db, questions, votes;
 
 client.connect()
@@ -42,31 +43,32 @@ client.connect()
     console.error("❌ MongoDB connection failed:", err);
   });
 
-// 🌐 Simple test route
+// 🟢 Test route
 app.get("/", (req, res) => {
   res.send("Would You Rather backend is running!");
 });
 
 // 🔌 Socket.io events
 io.on("connection", (socket) => {
-  console.log("🔗 Socket connected:", socket.id);
+  console.log("🔗 New socket connected:", socket.id);
 
-  // Hent random spørgsmål
+  // 🎲 Hent random spørgsmål
   socket.on("get-random-question", async () => {
     try {
       const count = await questions.countDocuments();
       if (count === 0) {
-        console.log("⚠️ No questions found in DB!");
+        console.log("⚠️ No questions found!");
         socket.emit("question-data", {
           _id: "fail",
           question_red: "Oops!",
-          question_blue: "No questions available!"
+          question_blue: "No questions in DB!"
         });
         return;
       }
 
       const randomIndex = Math.floor(Math.random() * count);
       const randomQuestion = await questions.find().limit(1).skip(randomIndex).toArray();
+
       console.log("🎲 Sending random question:", randomQuestion[0]);
 
       socket.emit("question-data", randomQuestion[0]);
@@ -80,7 +82,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Vote
+  // ✅ Vote
   socket.on("vote", async ({ questionId, choice }) => {
     try {
       const field = choice === "red" ? "votes_red" : "votes_blue";
@@ -93,7 +95,7 @@ io.on("connection", (socket) => {
       const question = await questions.findOne({ _id: questionId });
       const result = await votes.findOne({ question_id: questionId });
 
-      console.log(`✅ Vote for ${choice} on ${questionId} | Totals:`, result);
+      console.log(`✅ Voted ${choice} on ${questionId} | Totals:`, result);
 
       socket.emit("vote-result", {
         question_red: question?.question_red || "Unknown",

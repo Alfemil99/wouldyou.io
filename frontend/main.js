@@ -6,12 +6,12 @@ let currentChoice = "";
 let hasVoted = false;
 let soundEnabled = true;
 
-// Lyd-toggle knap
+// Mute toggle knap
 document.getElementById("mute-toggle").onclick = () => {
   soundEnabled = !soundEnabled;
   document.getElementById("mute-toggle").innerText = soundEnabled ? "🔊" : "🔇";
 
-  // Stop evt. kørende lyd med det samme
+  // Stop evt. igangværende lyd
   const cheer = document.getElementById("cheer-sound");
   const fart = document.getElementById("fart-sound");
   cheer.pause();
@@ -23,22 +23,22 @@ document.getElementById("mute-toggle").onclick = () => {
 // Første gang: hent random spørgsmål
 socket.emit("get-random-question");
 
-// Når vi får et spørgsmål
+// Modtag spørgsmål
 socket.on("question-data", (data) => {
   currentQuestionId = data._id || "fail";
 
   document.getElementById("red-label").innerText = data.question_red;
   document.getElementById("blue-label").innerText = data.question_blue;
 
-  // Reset flex til 50/50
-  document.getElementById("red").style.flex = 1;
-  document.getElementById("blue").style.flex = 1;
+  // Reset panels til 50/50
+  document.getElementById("red").style.flexGrow = 1;
+  document.getElementById("blue").style.flexGrow = 1;
 
   hasVoted = false;
   currentChoice = "";
 });
 
-// Klik paneler
+// Klik på paneler
 document.getElementById("red").onclick = () => handleClick("red");
 document.getElementById("blue").onclick = () => handleClick("blue");
 
@@ -56,15 +56,15 @@ function vote(choice) {
   socket.emit("vote", { questionId: currentQuestionId, choice });
 }
 
-// Når vi får resultatet
+// Modtag stemmeresultat
 socket.on("vote-result", (data) => {
   const total = data.votes_red + data.votes_blue;
   const redPercent = Math.round((data.votes_red / total) * 100);
   const bluePercent = 100 - redPercent;
 
-  // Animate panels
-  document.getElementById("red").style.flex = redPercent;
-  document.getElementById("blue").style.flex = bluePercent;
+  // Animate panels med flex-grow
+  document.getElementById("red").style.flexGrow = redPercent;
+  document.getElementById("blue").style.flexGrow = bluePercent;
 
   document.getElementById("red").innerHTML = `
     <div>${data.question_red}</div>
@@ -101,7 +101,7 @@ socket.on("vote-result", (data) => {
 
 // Hent næste spørgsmål
 function loadNextQuestion() {
-  // Stop lyde straks
+  // Stop evt. lyd straks
   const cheer = document.getElementById("cheer-sound");
   const fart = document.getElementById("fart-sound");
   cheer.pause();
@@ -113,11 +113,12 @@ function loadNextQuestion() {
   currentChoice = "";
   currentQuestionId = "";
 
-  document.getElementById("red").style.flex = 1;
-  document.getElementById("blue").style.flex = 1;
+  // Reset panels til 50/50 + loading
+  document.getElementById("red").style.flexGrow = 1;
+  document.getElementById("blue").style.flexGrow = 1;
 
-  document.getElementById("red").innerHTML = "<div id='red-label'>Loading...</div>";
-  document.getElementById("blue").innerHTML = "<div id='blue-label'>Loading...</div>";
+  document.getElementById("red").innerHTML = `<div id="red-label">Loading...</div>`;
+  document.getElementById("blue").innerHTML = `<div id="blue-label">Loading...</div>`;
 
   socket.emit("get-random-question");
 }
