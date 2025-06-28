@@ -1,33 +1,34 @@
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
-const socket = io("https://v-r-backend.onrender.com"); // din backend-URL
+const socket = io("https://v-r-backend.onrender.com");
 
 let currentQuestionId = "";
 let currentChoice = "";
 let hasVoted = false;
 let soundEnabled = true;
-let voteCount = 0; // tæller hvor mange stemmer brugeren har lavet
+let voteCount = 0;
+let tapHintTimeout = null;
 
-// 🔊 Mute toggle
 const muteToggle = document.getElementById("mute-toggle");
+const createBtn = document.getElementById("create-btn");
+const createModal = document.getElementById("create-modal");
+const closeModal = document.getElementById("closeModal");
+const tapHint = document.getElementById("tapHint");
+
 muteToggle.onclick = () => {
   soundEnabled = !soundEnabled;
   muteToggle.innerText = soundEnabled ? "🔊" : "🔇";
   stopSounds();
 };
 
-// 📝 Create Dilemma modal open/close
-const createBtn = document.getElementById("create-btn");
-const createModal = document.getElementById("create-modal");
-const closeModal = document.getElementById("closeModal");
-
 createBtn.onclick = () => {
   createModal.style.display = "block";
 };
+
 closeModal.onclick = () => {
   createModal.style.display = "none";
+  resetCreateModal();
 };
 
-// 📝 Submit dilemma
 document.getElementById("submitDilemma").onclick = async () => {
   const optionA = document.getElementById("optionA").value.trim();
   const optionB = document.getElementById("optionB").value.trim();
@@ -56,9 +57,20 @@ document.getElementById("submitDilemma").onclick = async () => {
 
   const msg = await res.text();
   document.getElementById("create-status").innerText = msg;
+
+  // Close popup after short delay
+  setTimeout(() => {
+    createModal.style.display = "none";
+    resetCreateModal();
+  }, 1500);
 };
 
-// 🔗 Hent første spørgsmål
+function resetCreateModal() {
+  document.getElementById("optionA").value = "";
+  document.getElementById("optionB").value = "";
+  document.getElementById("create-status").innerText = "";
+}
+
 socket.emit("get-random-question");
 
 socket.on("question-data", (data) => {
@@ -66,22 +78,20 @@ socket.on("question-data", (data) => {
   currentChoice = "";
   hasVoted = false;
 
-  // Sæt labels
   document.getElementById("red-label").innerText = data.question_red;
   document.getElementById("blue-label").innerText = data.question_blue;
 
-  // Reset votes og procent
   document.getElementById("red-votes").innerText = "";
   document.getElementById("red-percent").innerText = "";
   document.getElementById("blue-votes").innerText = "";
   document.getElementById("blue-percent").innerText = "";
 
-  // Reset panels til 50/50
   document.getElementById("red").style.flexGrow = 1;
   document.getElementById("blue").style.flexGrow = 1;
+
+  hideTapHint();
 });
 
-// Klik paneler
 document.getElementById("red").onclick = () => handleClick("red");
 document.getElementById("blue").onclick = () => handleClick("blue");
 
@@ -103,6 +113,8 @@ function vote(choice) {
   if (voteCount % 10 === 0) {
     showAdPopup();
   }
+
+  startTapHintTimer();
 }
 
 socket.on("vote-result", (data) => {
@@ -110,18 +122,14 @@ socket.on("vote-result", (data) => {
   const redPercent = total ? Math.round((data.votes_red / total) * 100) : 50;
   const bluePercent = 100 - redPercent;
 
-  // Animate panels
   document.getElementById("red").style.flexGrow = redPercent;
   document.getElementById("blue").style.flexGrow = bluePercent;
 
-  // Update tekst
   document.getElementById("red-votes").innerText = `${data.votes_red} votes`;
   document.getElementById("red-percent").innerText = `${redPercent}%`;
-
   document.getElementById("blue-votes").innerText = `${data.votes_blue} votes`;
   document.getElementById("blue-percent").innerText = `${bluePercent}%`;
 
-  // Lyd
   if (soundEnabled) {
     stopSounds();
     const cheer = document.getElementById("cheer-sound");
@@ -154,16 +162,17 @@ function loadNextQuestion() {
   document.getElementById("blue-votes").innerText = "";
   document.getElementById("blue-percent").innerText = "";
 
+  hideTapHint();
+  clearTimeout(tapHintTimeout);
+
   socket.emit("get-random-question");
 }
 
 function stopSounds() {
   const cheer = document.getElementById("cheer-sound");
   const fart = document.getElementById("fart-sound");
-  cheer.pause();
-  cheer.currentTime = 0;
-  fart.pause();
-  fart.currentTime = 0;
+  cheer.pause(); cheer.currentTime = 0;
+  fart.pause(); fart.currentTime = 0;
 }
 
 function showAdPopup() {
@@ -187,4 +196,15 @@ function showAdPopup() {
   document.getElementById("closeAd").onclick = () => {
     popup.remove();
   };
+}
+
+function startTapHintTimer() {
+  clearTimeout(tapHintTimeout);
+  tapHintTimeout = setTimeout(() => {
+    tapHint.style.display = "block";
+  }, 4000); // 4 sekunder
+}
+
+function hideTapHint() {
+  tapHint.style.display = "none";
 }

@@ -4,15 +4,15 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
 
-app.use(express.json()); // For POST JSON bodies
+app.use(express.json());
 
-// ✅ CORS til Vercel domæner
+// ✅ CORS til Vercel-domæner
 const corsOptions = {
   origin: [
     "https://v-r-eight.vercel.app",
@@ -47,10 +47,10 @@ client.connect()
 
 // ✅ Test route
 app.get("/", (req, res) => {
-  res.send("✅ DILEMMA.NET backend is running!");
+  res.send("✅ WOULDYOU.IO backend is running!");
 });
 
-// ✅ POST: Create new dilemma
+// ✅ POST: Create new would you rather
 app.post("/submit-question", async (req, res) => {
   const { optionA, optionB } = req.body;
 
@@ -76,7 +76,7 @@ app.post("/submit-question", async (req, res) => {
     approved: false
   });
 
-  res.send("Thanks! We'll review your dilemma.");
+  res.send("Thanks! We'll review your would you rather.");
 });
 
 // ✅ Socket.io logik
@@ -122,13 +122,13 @@ io.on("connection", (socket) => {
       const field = choice === "red" ? "votes_red" : "votes_blue";
 
       await votes.updateOne(
-        { question_id: questionId },
+        { question_id: new ObjectId(questionId) },
         { $inc: { [field]: 1 } },
         { upsert: true }
       );
 
-      const question = await questions.findOne({ _id: questionId }); // STRING match
-      const result = await votes.findOne({ question_id: questionId });
+      const question = await questions.findOne({ _id: new ObjectId(questionId) });
+      const result = await votes.findOne({ question_id: new ObjectId(questionId) });
 
       console.log(`✅ Vote saved: ${choice} on ${questionId}`);
 
@@ -151,5 +151,5 @@ io.on("connection", (socket) => {
 
 // ✅ Server start
 server.listen(3001, () => {
-  console.log("🚀 DILEMMA.NET backend running on port 3001");
+  console.log("🚀 WOULDYOU.IO backend running on port 3001");
 });

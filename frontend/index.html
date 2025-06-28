@@ -2,67 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>DILEMMAS.IO</title>
+  <title>WOULDYOU.IO</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Google Fonts: Alumni Sans SC -->
+
+  <!-- Google Font: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: #222; /* Undgå white bar */
-
+      margin: 0; padding: 0; height: 100%; overflow: hidden;
+      background: #222;
       font-family: "Outfit", sans-serif;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      font-style: normal;
     }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
 
     header {
-      background: #222;
-      color: white;
-      text-align: center;
+      background: #222; color: white; text-align: center;
       padding: 1rem;
       font-weight: bold;
       font-size: clamp(1rem, 4vw, 1.8rem);
     }
 
     #mute-toggle, #create-btn {
-      margin: 0 0.5rem;
-      cursor: pointer;
-      user-select: none;
+      margin: 0 0.5rem; cursor: pointer; user-select: none;
     }
 
     #container {
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
       height: calc(100dvh - 8rem); /* header + footer */
     }
 
     .panel {
       flex-grow: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: flex; justify-content: center; align-items: center;
       transition: flex-grow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      color: white;
-      text-align: center;
-      padding: 2rem;
-      will-change: flex-grow;
+      color: white; text-align: center;
+      padding: 2rem; will-change: flex-grow;
     }
 
     .choice-text .question {
       font-size: clamp(1.2rem, 5vw, 2rem);
-      font-weight: bold;
-      margin-bottom: 0.5rem;
+      font-weight: bold; margin-bottom: 0.5rem;
     }
 
     .choice-text .votes,
@@ -75,43 +58,43 @@
     .blue { background: #3b53db; }
 
     footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #222;
-      color: white;
-      text-align: center;
-      padding: 1rem; /* matcher header */
-      font-size: 0.8rem;
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: #222; color: white; text-align: center;
+      padding: 1rem; font-size: 0.8rem;
     }
 
     /* Popup modal */
     #create-modal {
       display: none;
-      position: fixed;
-      top: 50%; left: 50%;
+      position: fixed; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      background: #fff;
-      color: #000;
-      padding: 2rem;
-      border-radius: 8px;
+      background: #fff; color: #000;
+      padding: 2rem; border-radius: 8px;
       box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      z-index: 9999;
-      max-width: 90%;
-      width: 400px;
+      z-index: 9999; max-width: 90%; width: 400px;
       text-align: center;
     }
 
     #create-modal input {
-      width: 100%;
-      margin-bottom: 0.5rem;
-      padding: 0.5rem;
-      font-size: 1rem;
+      width: 100%; margin-bottom: 0.5rem; padding: 0.5rem; font-size: 1rem;
     }
 
-    #create-modal button {
-      margin-top: 0.5rem;
+    #create-modal button.submit-btn {
+      background: #007BFF; color: #fff; border: none;
+      padding: 10px 20px; border-radius: 4px; cursor: pointer;
+    }
+
+    #create-modal .close-btn {
+      position: absolute; top: 10px; right: 15px;
+      color: #e74c3c; font-size: 1.5rem; cursor: pointer;
+    }
+
+    /* Tap to continue */
+    #tapHint {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: white; font-size: 1.5rem; opacity: 0.8;
+      display: none;
     }
   </style>
 </head>
@@ -131,7 +114,6 @@
         <div class="percent" id="red-percent"></div>
       </div>
     </div>
-
     <div id="blue" class="panel blue">
       <div class="choice-text">
         <div class="question" id="blue-label">Option B</div>
@@ -141,19 +123,22 @@
     </div>
   </div>
 
+  <!-- Tap to continue -->
+  <div id="tapHint">Tap to continue</div>
+
   <!-- Footer -->
   <footer>
     © 2024 WOULDYOU.IO — All rights reserved
   </footer>
 
-  <!-- Create Dilemma Modal -->
+  <!-- Create Would You Rather Modal -->
   <div id="create-modal">
-    <h3>📝 Create Your Own Dilemma</h3>
+    <span class="close-btn" id="closeModal">❌</span>
+    <h3>📝 Add Your Own "Would You Rather"</h3>
     <input type="text" id="optionA" placeholder="Option A (max 80 chars)">
     <input type="text" id="optionB" placeholder="Option B (max 80 chars)">
-    <button id="submitDilemma">Submit</button>
+    <button class="submit-btn" id="submitDilemma">Submit</button>
     <div id="create-status"></div>
-    <button id="closeModal">Close</button>
   </div>
 
   <!-- Sounds -->
