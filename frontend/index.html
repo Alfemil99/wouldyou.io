@@ -18,7 +18,7 @@
       background: #222;
       color: white;
       text-align: center;
-      padding: 1rem;
+      padding: 1rem; /* fx 1rem for begge */
       font-weight: bold;
       font-size: clamp(1rem, 4vw, 1.8rem);
     }
@@ -32,8 +32,9 @@
     #container {
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 120px); /* minus header + footer */
+      height: calc(100vh - 2 * 64px); /* eller hvad dine rems px svarer til */
     }
+
 
     .panel {
       flex-grow: 1;
@@ -66,7 +67,7 @@
       background: #222;
       color: white;
       text-align: center;
-      padding: 0.5rem;
+      padding: 1rem; /* match header! */
       font-size: 0.8rem;
     }
   </style>
