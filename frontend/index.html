@@ -18,12 +18,13 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      position: relative;
+      box-sizing: border-box;
+      padding-top: 4rem; /* Samme højde som header */
       text-align: center;
     }
 
     #title {
-      position: absolute;
+      position: fixed; /* fixed, ikke absolute! */
       top: 0;
       left: 0;
       right: 0;
@@ -32,16 +33,16 @@
       padding: 1rem;
       font-weight: bold;
       font-size: clamp(1.2rem, 5vw, 2rem);
-      z-index: 100;
+      z-index: 1000;
     }
 
     #mute-toggle {
-      position: absolute;
+      position: fixed; /* fixed så den følger header */
       top: 10px;
       right: 15px;
       font-size: 1.8rem;
       cursor: pointer;
-      z-index: 200;
+      z-index: 1100;
       user-select: none;
     }
 
@@ -71,10 +72,10 @@
 </head>
 <body>
 
-  <div id="container">
-    <div id="title">WOULD YOU RATHER</div>
-    <div id="mute-toggle">🔊</div>
+  <div id="title">WOULD YOU RATHER</div>
+  <div id="mute-toggle">🔊</div>
 
+  <div id="container">
     <div id="red" class="panel red">
       <div id="red-label">Loading...</div>
     </div>
