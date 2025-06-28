@@ -10,15 +10,18 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: Arial, sans-serif;
-      overflow: hidden;
+      overflow: hidden; /* 💡 ingen scroll, ingen gap */
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
     }
 
     header {
       background: #222;
       color: white;
       text-align: center;
-      padding: 1rem; /* fx 1rem for begge */
+      padding: 1rem;
       font-weight: bold;
       font-size: clamp(1rem, 4vw, 1.8rem);
     }
@@ -29,12 +32,12 @@
       user-select: none;
     }
 
+    /* 💡 Brug dynamic viewport height hvis tilgængelig */
     #container {
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 2 * 64px); /* eller hvad dine rems px svarer til */
+      height: calc(100dvh - 8rem); /* 2x 4rem for header/footer */
     }
-
 
     .panel {
       flex-grow: 1;
@@ -67,21 +70,19 @@
       background: #222;
       color: white;
       text-align: center;
-      padding: 1rem; /* match header! */
+      padding: 1rem; /* 💡 samme som header */
       font-size: 0.8rem;
+      width: 100%;
     }
   </style>
 </head>
 
 <body>
-  <!-- Header -->
   <header>
     DILEMMA.NET <span id="mute-toggle">🔊</span>
   </header>
 
-  <!-- Voting panels -->
   <div id="container">
-    <!-- Option A -->
     <div id="red" class="panel red">
       <div class="choice-text">
         <div class="question" id="red-label">Option A</div>
@@ -90,7 +91,6 @@
       </div>
     </div>
 
-    <!-- Option B -->
     <div id="blue" class="panel blue">
       <div class="choice-text">
         <div class="question" id="blue-label">Option B</div>
@@ -100,12 +100,11 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <footer>
     © 2024 DILEMMA.NET — All rights reserved
   </footer>
 
-  <!-- Sounds -->
+  <!-- Lyd -->
   <audio id="cheer-sound" preload="auto">
     <source src="./sounds/cheer.mp3" type="audio/mpeg" />
   </audio>
@@ -113,7 +112,7 @@
     <source src="./sounds/fart_echo.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- Socket logic -->
+  <!-- Socket script -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>
