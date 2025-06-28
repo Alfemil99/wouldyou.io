@@ -11,7 +11,7 @@
       padding: 0;
       height: 100%;
       overflow: hidden;
-      background: #222; /* Matcher footer */
+      background: #222; /* Undgå white bar */
     }
 
     *, *::before, *::after {
@@ -27,8 +27,8 @@
       font-size: clamp(1rem, 4vw, 1.8rem);
     }
 
-    #mute-toggle {
-      margin-left: 1rem;
+    #mute-toggle, #create-btn {
+      margin: 0 0.5rem;
       cursor: pointer;
       user-select: none;
     }
@@ -36,7 +36,7 @@
     #container {
       display: flex;
       flex-direction: column;
-      height: calc(100dvh - 8rem); /* 4rem header + 4rem footer */
+      height: calc(100dvh - 8rem); /* header + footer */
     }
 
     .panel {
@@ -74,8 +74,36 @@
       background: #222;
       color: white;
       text-align: center;
-      padding: 1rem; /* Samme som header */
+      padding: 1rem; /* matcher header */
       font-size: 0.8rem;
+    }
+
+    /* Popup modal */
+    #create-modal {
+      display: none;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      color: #000;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      z-index: 9999;
+      max-width: 90%;
+      width: 400px;
+      text-align: center;
+    }
+
+    #create-modal input {
+      width: 100%;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+
+    #create-modal button {
+      margin-top: 0.5rem;
     }
   </style>
 </head>
@@ -83,10 +111,10 @@
 <body>
   <!-- Header -->
   <header>
-    DILEMMA.NET <span id="mute-toggle">🔊</span>
+    <span id="create-btn">📝</span> DILEMMA.NET <span id="mute-toggle">🔊</span>
   </header>
 
-  <!-- Voting panels -->
+  <!-- Panels -->
   <div id="container">
     <div id="red" class="panel red">
       <div class="choice-text">
@@ -110,6 +138,16 @@
     © 2024 DILEMMA.NET — All rights reserved
   </footer>
 
+  <!-- Create Dilemma Modal -->
+  <div id="create-modal">
+    <h3>📝 Create Your Own Dilemma</h3>
+    <input type="text" id="optionA" placeholder="Option A (max 80 chars)">
+    <input type="text" id="optionB" placeholder="Option B (max 80 chars)">
+    <button id="submitDilemma">Submit</button>
+    <div id="create-status"></div>
+    <button id="closeModal">Close</button>
+  </div>
+
   <!-- Sounds -->
   <audio id="cheer-sound" preload="auto">
     <source src="./sounds/cheer.mp3" type="audio/mpeg" />
@@ -118,7 +156,7 @@
     <source src="./sounds/fart_echo.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- Socket logic -->
+  <!-- Script -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>

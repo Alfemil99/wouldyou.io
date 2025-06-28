@@ -10,10 +10,11 @@ require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Tillad CORS fra din Vercel frontend
+app.use(express.json()); // For POST JSON bodies
+
+// ✅ CORS til Vercel domæner
 const corsOptions = {
   origin: [
-    "https://dilemma.vercel.app",
     "https://v-r-eight.vercel.app",
     "https://v-r-alfemil99s-projects.vercel.app"
   ],
@@ -30,22 +31,52 @@ const io = new Server(server, {
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 
-let db, questions, votes;
+let db, questions, votes, pendingQuestions;
 
 client.connect()
   .then(() => {
     db = client.db("would-you-rather");
     questions = db.collection("questions");
     votes = db.collection("votes");
+    pendingQuestions = db.collection("pending_questions");
     console.log("✅ MongoDB connected");
   })
   .catch(err => {
     console.error("❌ MongoDB connection failed:", err);
   });
 
-// ✅ Simpel GET til test
+// ✅ Test route
 app.get("/", (req, res) => {
   res.send("✅ DILEMMA.NET backend is running!");
+});
+
+// ✅ POST: Create new dilemma
+app.post("/submit-question", async (req, res) => {
+  const { optionA, optionB } = req.body;
+
+  const badWords = ["fuck", "shit", "porn", "nazi"];
+  const regex = new RegExp(`\\b(${badWords.join("|")})\\b`, "i");
+
+  function isValid(option) {
+    if (!option || option.length > 80) return false;
+    if (/(https?:\/\/|www\.)/i.test(option)) return false;
+    if (/\.(jpg|jpeg|png|gif|svg)/i.test(option)) return false;
+    if (regex.test(option)) return false;
+    return true;
+  }
+
+  if (!isValid(optionA) || !isValid(optionB)) {
+    return res.status(400).send("Invalid or inappropriate input.");
+  }
+
+  await pendingQuestions.insertOne({
+    question_red: optionA,
+    question_blue: optionB,
+    created_at: new Date(),
+    approved: false
+  });
+
+  res.send("Thanks! We'll review your dilemma.");
 });
 
 // ✅ Socket.io logik
@@ -57,11 +88,10 @@ io.on("connection", (socket) => {
     try {
       const count = await questions.countDocuments();
       if (count === 0) {
-        console.warn("⚠️ No questions found!");
         socket.emit("question-data", {
           _id: "fail",
           question_red: "Oops!",
-          question_blue: "No questions available!"
+          question_blue: "No questions found."
         });
         return;
       }
