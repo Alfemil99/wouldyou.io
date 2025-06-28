@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Would You Rather</title>
+  <title>DILEMMA.NET</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -15,77 +15,77 @@
     }
 
     #container {
+      position: relative;
       display: flex;
       flex-direction: column;
-      height: 100vh; /* bruger viewport height */
-      text-align: center;
-      position: relative; /* gør header absolute mulig */
-    }
-
-    #title {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: #222;
-      color: white;
-      padding: 1rem;
-      font-weight: bold;
-      font-size: clamp(1.2rem, 5vw, 2rem);
-      z-index: 100;
-    }
-
-    #mute-toggle {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 1.8rem;
-      cursor: pointer;
-      z-index: 200;
-      user-select: none;
+      height: 100vh;
     }
 
     .panel {
       flex-grow: 1;
-      flex-shrink: 0;
-      flex-basis: 0%;
       display: flex;
-      flex-direction: column;
       justify-content: center;
+      align-items: center;
       transition: flex-grow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       color: white;
       font-weight: bold;
-      font-size: clamp(1.5rem, 6vw, 3rem);
-      padding: 2rem;
+      font-size: clamp(1.5rem, 5vw, 3rem);
       will-change: flex-grow;
-      padding-top: 4rem; /* undgå overlap med header */
+      text-align: center;
+      padding: 2rem;
     }
 
     .red { background: #e74c3c; }
-    .blue { background: #3498db; }
+    .blue { background: #3b53db; }
+
+    #center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      color: white;
+      padding: 0.5rem 1rem;
+      font-weight: bold;
+      font-size: clamp(1.2rem, 6vw, 2rem);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 10;
+      user-select: none;
+    }
+
+    #mute-toggle {
+      cursor: pointer;
+      user-select: none;
+    }
 
     .panel div {
-      margin: 0.5rem 0;
       word-break: break-word;
     }
   </style>
 </head>
-<body>
 
+<body>
   <div id="container">
-    <div id="title">WOULD YOU RATHER</div>
+    <!-- Øverste valg -->
     <div id="red" class="panel red">
-      <div id="red-label">Loading...</div>
+      <div id="red-label">A</div>
     </div>
+
+    <!-- Midterlinje -->
+    <div id="center-text">
+      DILEMMA.NET
+      <span id="mute-toggle">🔊</span>
+    </div>
+
+    <!-- Nederste valg -->
     <div id="blue" class="panel blue">
-      <div id="blue-label">Loading...</div>
+      <div id="blue-label">B</div>
     </div>
   </div>
 
-  <!-- Mute toggle -->
-  <div id="mute-toggle">🔊</div>
-
-  <!-- Sounds -->
+  <!-- Lyd -->
   <audio id="cheer-sound" preload="auto">
     <source src="./sounds/cheer.mp3" type="audio/mpeg" />
   </audio>
@@ -95,6 +95,5 @@
 
   <!-- Socket.io logic -->
   <script type="module" src="./main.js"></script>
-
 </body>
 </html>

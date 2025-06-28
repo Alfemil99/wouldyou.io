@@ -1,5 +1,5 @@
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
-const socket = io("https://v-r-backend.onrender.com"); // Din backend URL
+const socket = io("https://v-r-backend.onrender.com"); // din backend
 
 let currentQuestionId = "";
 let currentChoice = "";
@@ -7,26 +7,20 @@ let hasVoted = false;
 let soundEnabled = true;
 
 // 🎚️ Mute toggle
-document.getElementById("mute-toggle").onclick = () => {
+const muteToggle = document.getElementById("mute-toggle");
+muteToggle.onclick = () => {
   soundEnabled = !soundEnabled;
-  document.getElementById("mute-toggle").innerText = soundEnabled ? "🔊" : "🔇";
+  muteToggle.innerText = soundEnabled ? "🔊" : "🔇";
 
   // Stop evt. lyd straks
-  const cheer = document.getElementById("cheer-sound");
-  const fart = document.getElementById("fart-sound");
-  cheer.pause();
-  cheer.currentTime = 0;
-  fart.pause();
-  fart.currentTime = 0;
+  stopSounds();
 };
 
-// 🔄 Hent første spørgsmål
+// 🔗 Hent første spørgsmål
 socket.emit("get-random-question");
 
-// 🟢 Modtag spørgsmål
 socket.on("question-data", (data) => {
   currentQuestionId = data._id || "fail";
-
   document.getElementById("red-label").innerText = data.question_red;
   document.getElementById("blue-label").innerText = data.question_blue;
 
@@ -50,20 +44,20 @@ function handleClick(choice) {
   }
 }
 
-// ✅ Send stemme
+// ✅ Stem
 function vote(choice) {
   hasVoted = true;
   currentChoice = choice;
   socket.emit("vote", { questionId: currentQuestionId, choice });
 }
 
-// 🟢 Modtag resultat
+// 🔄 Modtag resultat
 socket.on("vote-result", (data) => {
   const total = data.votes_red + data.votes_blue;
   const redPercent = Math.round((data.votes_red / total) * 100);
   const bluePercent = 100 - redPercent;
 
-  // Animate panels snappy!
+  // Animate panels
   document.getElementById("red").style.flexGrow = redPercent;
   document.getElementById("blue").style.flexGrow = bluePercent;
 
@@ -78,38 +72,25 @@ socket.on("vote-result", (data) => {
     <div>${bluePercent}%</div>
   `;
 
-  // 🔊 Lyd afhænger af toggle
+  // Lyd afhængigt af valg
   if (soundEnabled) {
     const cheer = document.getElementById("cheer-sound");
     const fart = document.getElementById("fart-sound");
+    const votedForMajority = (currentChoice === "red" && redPercent >= bluePercent)
+                          || (currentChoice === "blue" && bluePercent >= redPercent);
 
-    let votedForMajority = false;
-    if (currentChoice === "red") {
-      votedForMajority = redPercent >= bluePercent;
-    } else {
-      votedForMajority = bluePercent >= redPercent;
-    }
-
+    stopSounds();
     if (votedForMajority) {
-      cheer.currentTime = 0;
       cheer.play().catch(() => {});
     } else {
-      fart.currentTime = 0;
       fart.play().catch(() => {});
     }
   }
 });
 
-// 🔄 Næste spørgsmål
+// 🔄 Load næste spørgsmål
 function loadNextQuestion() {
-  // Stop lyd straks
-  const cheer = document.getElementById("cheer-sound");
-  const fart = document.getElementById("fart-sound");
-  cheer.pause();
-  cheer.currentTime = 0;
-  fart.pause();
-  fart.currentTime = 0;
-
+  stopSounds();
   hasVoted = false;
   currentChoice = "";
   currentQuestionId = "";
@@ -121,4 +102,14 @@ function loadNextQuestion() {
   document.getElementById("blue").innerHTML = "<div id='blue-label'>Loading...</div>";
 
   socket.emit("get-random-question");
+}
+
+// 🛑 Stop alle lyde
+function stopSounds() {
+  const cheer = document.getElementById("cheer-sound");
+  const fart = document.getElementById("fart-sound");
+  cheer.pause();
+  cheer.currentTime = 0;
+  fart.pause();
+  fart.currentTime = 0;
 }

@@ -4,18 +4,19 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
-const { MongoClient, ObjectId } = require("mongodb");
+const { MongoClient } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
 
-// ✅ CORS - til dine Vercel frontends
+// ✅ CORS til dine Vercel domæner
 const corsOptions = {
   origin: [
     "https://v-r-eight.vercel.app",
     "https://v-r-alfemil99s-projects.vercel.app",
-    "https://v-r-yourproject.vercel.app"  // tilføj alle domæner du deployer fra
+    "https://dilemma.vercel.app"
+    // Tilføj flere hvis du har flere deploys
   ],
   methods: ["GET", "POST"],
   credentials: true
@@ -27,7 +28,7 @@ const io = new Server(server, {
   cors: corsOptions
 });
 
-// ✅ MongoDB
+// ✅ MongoDB setup
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 let db, questions, votes;
@@ -45,19 +46,19 @@ client.connect()
 
 // ✅ Test route
 app.get("/", (req, res) => {
-  res.send("Would You Rather backend is running!");
+  res.send("✅ DILEMMA.NET backend is running!");
 });
 
-// ✅ Socket.io events
+// ✅ Socket.io logic
 io.on("connection", (socket) => {
-  console.log("🔗 Socket connected:", socket.id);
+  console.log("🔗 New socket connected:", socket.id);
 
   // 🎲 Get random question
   socket.on("get-random-question", async () => {
     try {
       const count = await questions.countDocuments();
       if (count === 0) {
-        console.log("⚠️ No questions found in DB!");
+        console.warn("⚠️ No questions found!");
         socket.emit("question-data", {
           _id: "fail",
           question_red: "Oops!",
@@ -67,10 +68,9 @@ io.on("connection", (socket) => {
       }
 
       const randomIndex = Math.floor(Math.random() * count);
-      const [randomQuestion] = await questions.find().limit(1).skip(randomIndex).toArray();
+      const [randomQuestion] = await questions.find().skip(randomIndex).limit(1).toArray();
 
       console.log("🎲 Sending question:", randomQuestion);
-
       socket.emit("question-data", randomQuestion);
     } catch (err) {
       console.error("❌ get-random-question error:", err);
@@ -82,11 +82,11 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ✅ Save vote
+  // ✅ Vote logic
   socket.on("vote", async ({ questionId, choice }) => {
     try {
       if (!questionId) {
-        console.warn("⚠️ vote called with missing questionId");
+        console.warn("⚠️ Missing questionId in vote");
         return;
       }
 
@@ -98,11 +98,10 @@ io.on("connection", (socket) => {
         { upsert: true }
       );
 
-      // ✅ Her bruger vi STRING, IKKE ObjectId
-      const question = await questions.findOne({ _id: questionId });
+      const question = await questions.findOne({ _id: questionId }); // STRING!
       const result = await votes.findOne({ question_id: questionId });
 
-      console.log(`✅ Vote for ${choice} on ${questionId} | ${field} incremented`);
+      console.log(`✅ Vote saved: ${choice} on ${questionId}`);
 
       socket.emit("vote-result", {
         question_red: question?.question_red || "Unknown",
@@ -110,19 +109,19 @@ io.on("connection", (socket) => {
         votes_red: result?.votes_red || 0,
         votes_blue: result?.votes_blue || 0
       });
+
     } catch (err) {
       console.error("❌ vote error:", err);
       socket.emit("vote-result", { error: "Vote failed" });
     }
   });
 
-
   socket.on("disconnect", () => {
     console.log("🔌 Socket disconnected:", socket.id);
   });
 });
 
-// ✅ Start server
+// ✅ Server start
 server.listen(3001, () => {
-  console.log("🚀 Backend running on port 3001");
+  console.log("🚀 DILEMMA.NET backend running on port 3001");
 });
