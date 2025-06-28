@@ -10,7 +10,8 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      overflow: hidden; /* 💡 ingen scroll, ingen gap */
+      overflow: hidden;
+      background: #222; /* Matcher footer */
     }
 
     *, *::before, *::after {
@@ -32,11 +33,10 @@
       user-select: none;
     }
 
-    /* 💡 Brug dynamic viewport height hvis tilgængelig */
     #container {
       display: flex;
       flex-direction: column;
-      height: calc(100dvh - 8rem); /* 2x 4rem for header/footer */
+      height: calc(100dvh - 8rem); /* 4rem header + 4rem footer */
     }
 
     .panel {
@@ -67,21 +67,26 @@
     .blue { background: #3b53db; }
 
     footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
       background: #222;
       color: white;
       text-align: center;
-      padding: 1rem; /* 💡 samme som header */
+      padding: 1rem; /* Samme som header */
       font-size: 0.8rem;
-      width: 100%;
     }
   </style>
 </head>
 
 <body>
+  <!-- Header -->
   <header>
     DILEMMA.NET <span id="mute-toggle">🔊</span>
   </header>
 
+  <!-- Voting panels -->
   <div id="container">
     <div id="red" class="panel red">
       <div class="choice-text">
@@ -100,11 +105,12 @@
     </div>
   </div>
 
+  <!-- Footer -->
   <footer>
     © 2024 DILEMMA.NET — All rights reserved
   </footer>
 
-  <!-- Lyd -->
+  <!-- Sounds -->
   <audio id="cheer-sound" preload="auto">
     <source src="./sounds/cheer.mp3" type="audio/mpeg" />
   </audio>
@@ -112,7 +118,7 @@
     <source src="./sounds/fart_echo.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- Socket script -->
+  <!-- Socket logic -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>
