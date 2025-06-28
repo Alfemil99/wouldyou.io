@@ -14,11 +14,25 @@
       overflow: hidden;
     }
 
+    header {
+      background: #222;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      font-weight: bold;
+      font-size: clamp(1rem, 4vw, 1.8rem);
+    }
+
+    #mute-toggle {
+      margin-left: 1rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
     #container {
-      position: relative;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      height: calc(100vh - 120px); /* minus header + footer */
     }
 
     .panel {
@@ -28,64 +42,69 @@
       align-items: center;
       transition: flex-grow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       color: white;
-      font-weight: bold;
-      font-size: clamp(1.5rem, 5vw, 3rem);
-      will-change: flex-grow;
       text-align: center;
       padding: 2rem;
+      will-change: flex-grow;
+    }
+
+    .choice-text .question {
+      font-size: clamp(1.2rem, 5vw, 2rem);
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .choice-text .votes,
+    .choice-text .percent {
+      margin-top: 0.2rem;
+      font-size: clamp(1rem, 4vw, 1.1rem);
     }
 
     .red { background: #e74c3c; }
     .blue { background: #3b53db; }
 
-    #center-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+    footer {
       background: #222;
       color: white;
-      padding: 0.5rem 1rem;
-      font-weight: bold;
-      font-size: clamp(1.2rem, 6vw, 2rem);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      z-index: 10;
-      user-select: none;
-    }
-
-    #mute-toggle {
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .panel div {
-      word-break: break-word;
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 0.8rem;
     }
   </style>
 </head>
 
 <body>
+  <!-- Header -->
+  <header>
+    DILEMMA.NET <span id="mute-toggle">🔊</span>
+  </header>
+
+  <!-- Voting panels -->
   <div id="container">
-    <!-- Øverste valg -->
+    <!-- Option A -->
     <div id="red" class="panel red">
-      <div id="red-label">A</div>
+      <div class="choice-text">
+        <div class="question" id="red-label">Option A</div>
+        <div class="votes" id="red-votes"></div>
+        <div class="percent" id="red-percent"></div>
+      </div>
     </div>
 
-    <!-- Midterlinje -->
-    <div id="center-text">
-      DILEMMA.NET
-      <span id="mute-toggle">🔊</span>
-    </div>
-
-    <!-- Nederste valg -->
+    <!-- Option B -->
     <div id="blue" class="panel blue">
-      <div id="blue-label">B</div>
+      <div class="choice-text">
+        <div class="question" id="blue-label">Option B</div>
+        <div class="votes" id="blue-votes"></div>
+        <div class="percent" id="blue-percent"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Lyd -->
+  <!-- Footer -->
+  <footer>
+    © 2024 DILEMMA.NET — All rights reserved
+  </footer>
+
+  <!-- Sounds -->
   <audio id="cheer-sound" preload="auto">
     <source src="./sounds/cheer.mp3" type="audio/mpeg" />
   </audio>
@@ -93,7 +112,7 @@
     <source src="./sounds/fart_echo.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- Socket.io logic -->
+  <!-- Socket logic -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>

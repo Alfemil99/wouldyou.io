@@ -10,18 +10,16 @@ require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ CORS til dine Vercel domæner
+// ✅ Tillad CORS fra din Vercel frontend
 const corsOptions = {
   origin: [
+    "https://dilemma.vercel.app",
     "https://v-r-eight.vercel.app",
-    "https://v-r-alfemil99s-projects.vercel.app",
-    "https://dilemma.vercel.app"
-    // Tilføj flere hvis du har flere deploys
+    "https://v-r-alfemil99s-projects.vercel.app"
   ],
   methods: ["GET", "POST"],
   credentials: true
 };
-
 app.use(cors(corsOptions));
 
 const io = new Server(server, {
@@ -31,6 +29,7 @@ const io = new Server(server, {
 // ✅ MongoDB setup
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
+
 let db, questions, votes;
 
 client.connect()
@@ -44,16 +43,16 @@ client.connect()
     console.error("❌ MongoDB connection failed:", err);
   });
 
-// ✅ Test route
+// ✅ Simpel GET til test
 app.get("/", (req, res) => {
   res.send("✅ DILEMMA.NET backend is running!");
 });
 
-// ✅ Socket.io logic
+// ✅ Socket.io logik
 io.on("connection", (socket) => {
   console.log("🔗 New socket connected:", socket.id);
 
-  // 🎲 Get random question
+  // 🎲 Random spørgsmål
   socket.on("get-random-question", async () => {
     try {
       const count = await questions.countDocuments();
@@ -82,7 +81,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ✅ Vote logic
+  // ✅ Stem
   socket.on("vote", async ({ questionId, choice }) => {
     try {
       if (!questionId) {
@@ -98,7 +97,7 @@ io.on("connection", (socket) => {
         { upsert: true }
       );
 
-      const question = await questions.findOne({ _id: questionId }); // STRING!
+      const question = await questions.findOne({ _id: questionId }); // STRING match
       const result = await votes.findOne({ question_id: questionId });
 
       console.log(`✅ Vote saved: ${choice} on ${questionId}`);
@@ -109,7 +108,6 @@ io.on("connection", (socket) => {
         votes_red: result?.votes_red || 0,
         votes_blue: result?.votes_blue || 0
       });
-
     } catch (err) {
       console.error("❌ vote error:", err);
       socket.emit("vote-result", { error: "Vote failed" });
