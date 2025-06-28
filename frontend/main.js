@@ -48,7 +48,7 @@ document.getElementById("submitDilemma").onclick = async () => {
     return;
   }
 
-  const res = await fetch("/submit-question", {
+  const res = await fetch("https://v-r-backend.onrender.com/submit-question", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ optionA, optionB })
