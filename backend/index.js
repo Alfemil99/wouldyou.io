@@ -122,13 +122,13 @@ io.on("connection", (socket) => {
       const field = choice === "red" ? "votes_red" : "votes_blue";
 
       await votes.updateOne(
-        { question_id: new ObjectId(questionId) },
+        { question_id: questionId },
         { $inc: { [field]: 1 } },
         { upsert: true }
       );
 
       const question = await questions.findOne({ _id: new ObjectId(questionId) });
-      const result = await votes.findOne({ question_id: new ObjectId(questionId) });
+      const result = await votes.findOne({ question_id: questionId });
 
       console.log(`✅ Vote saved: ${choice} on ${questionId}`);
 
@@ -147,7 +147,8 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("🔌 Socket disconnected:", socket.id);
   });
-});
+}); // ✅ ÉN io.on - lukker korrekt her!
+
 
 // ✅ Server start
 server.listen(3001, () => {
