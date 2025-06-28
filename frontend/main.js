@@ -186,12 +186,24 @@ function showAdPopup() {
   popup.style.borderRadius = "8px";
   popup.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
   popup.style.zIndex = "9999";
+
+  // Tilføj din manuelle AdSense-annoncekode her
   popup.innerHTML = `
     <h3>Advertisement 🤑</h3>
     <p>Thanks for playing!</p>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-5747384081350738"
+         data-ad-slot="4958435717"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
     <button id="closeAd">Continue</button>
   `;
+
   document.body.appendChild(popup);
+
+  // Trigger annoncen så AdSense loader den dynamisk
+  (adsbygoogle = window.adsbygoogle || []).push({});
 
   document.getElementById("closeAd").onclick = () => {
     popup.remove();
