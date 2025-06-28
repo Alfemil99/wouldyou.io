@@ -11,92 +11,104 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
   <style>
-    html, body {
-      margin: 0; padding: 0; height: 100%; overflow: hidden;
-      background: #222;
-      font-family: "Outfit", sans-serif;
-    }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #222;
+    font-family: "Outfit", sans-serif;
+    user-select: none; /* Globalt: gør siden ikke-markerbar */
+    -webkit-user-select: none; /* Safari support */
+  }
 
-    *, *::before, *::after { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; }
 
-    header {
-      background: #222; color: white; text-align: center;
-      padding: 1rem;
-      font-weight: bold;
-      font-size: clamp(1rem, 4vw, 1.8rem);
-    }
+  header {
+    background: #222; color: white; text-align: center;
+    padding: 1rem;
+    font-weight: bold;
+    font-size: clamp(1rem, 4vw, 1.8rem);
+    user-select: none; /* Sikrer at logo og emoji ikke kan markeres */
+  }
 
-    #mute-toggle, #create-btn {
-      margin: 0 0.5rem; cursor: pointer; user-select: none;
-    }
+  #mute-toggle, #create-btn {
+    margin: 0 0.5rem; cursor: pointer; user-select: none;
+    -webkit-user-select: none;
+  }
 
-    #container {
-      display: flex; flex-direction: column;
-      height: calc(100dvh - 8rem); /* header + footer */
-    }
+  #container {
+    display: flex; flex-direction: column;
+    height: calc(100dvh - 8rem); /* header + footer */
+  }
 
-    .panel {
-      flex-grow: 1;
-      display: flex; justify-content: center; align-items: center;
-      transition: flex-grow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      color: white; text-align: center;
-      padding: 2rem; will-change: flex-grow;
-    }
+  .panel {
+    flex-grow: 1;
+    display: flex; justify-content: center; align-items: center;
+    transition: flex-grow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    color: white; text-align: center;
+    padding: 2rem; will-change: flex-grow;
+    user-select: none;
+  }
 
-    .choice-text .question {
-      font-size: clamp(1.2rem, 5vw, 2rem);
-      font-weight: bold; margin-bottom: 0.5rem;
-    }
+  .choice-text .question {
+    font-size: clamp(1.2rem, 5vw, 2rem);
+    font-weight: bold; margin-bottom: 0.5rem;
+  }
 
-    .choice-text .votes,
-    .choice-text .percent {
-      margin-top: 0.2rem;
-      font-size: clamp(1rem, 4vw, 1.1rem);
-    }
+  .choice-text .votes,
+  .choice-text .percent {
+    margin-top: 0.2rem;
+    font-size: clamp(1rem, 4vw, 1.1rem);
+  }
 
-    .red { background: #e74c3c; }
-    .blue { background: #3b53db; }
+  .red { background: #e74c3c; }
+  .blue { background: #3b53db; }
 
-    footer {
-      position: fixed; bottom: 0; left: 0; width: 100%;
-      background: #222; color: white; text-align: center;
-      padding: 1rem; font-size: 0.8rem;
-    }
+  footer {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    background: #222; color: white; text-align: center;
+    padding: 1rem; font-size: 0.8rem;
+    user-select: none;
+  }
 
-    /* Popup modal */
-    #create-modal {
-      display: none;
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff; color: #000;
-      padding: 2rem; border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      z-index: 9999; max-width: 90%; width: 400px;
-      text-align: center;
-    }
+  /* Popup modal */
+  #create-modal {
+    display: none;
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff; color: #000;
+    padding: 2rem; border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    z-index: 9999; max-width: 90%; width: 400px;
+    text-align: center;
+    user-select: auto; /* Tillad markering i inputs */
+  }
 
-    #create-modal input {
-      width: 100%; margin-bottom: 0.5rem; padding: 0.5rem; font-size: 1rem;
-    }
+  #create-modal input {
+    width: 100%; margin-bottom: 0.5rem; padding: 0.5rem; font-size: 1rem;
+    user-select: text; /* Man skal kunne markere tekst i inputs */
+  }
 
-    #create-modal button.submit-btn {
-      background: #3b53db;; color: #fff; border: none;
-      padding: 10px 20px; border-radius: 4px; cursor: pointer;
-    }
+  #create-modal button.submit-btn {
+    background: #3b53db; color: #fff; border: none;
+    padding: 10px 20px; border-radius: 4px; cursor: pointer;
+    user-select: none;
+  }
 
-    #create-modal .close-btn {
-      position: absolute; top: 10px; right: 15px;
-      color: #e74c3c; font-size: 1.5rem; cursor: pointer;
-    }
+  #create-modal .close-btn {
+    position: absolute; top: 10px; right: 15px;
+    color: #e74c3c; font-size: 1.5rem; cursor: pointer;
+    user-select: none;
+  }
 
-    /* Tap to continue */
-    #tapHint {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      color: white; font-size: 1.5rem; opacity: 0.8;
-      display: none;
-    }
-  </style>
+  /* Tap to continue */
+  #tapHint {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: white; font-size: 1.5rem; opacity: 0.8;
+    display: none;
+    user-select: none;
+  }
+</style>
+
 </head>
 
 <body>
