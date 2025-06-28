@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Would You Rather</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     html, body {
       margin: 0;
@@ -51,10 +52,10 @@
 
     #next-btn {
       display: none;
-      position: absolute;
-      top: 50%;
+      position: fixed;
+      bottom: 30px;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       font-size: 1.2rem;
       padding: 1rem 2rem;
       background: #333;
@@ -64,6 +65,7 @@
       cursor: pointer;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       transition: background 0.3s ease;
+      z-index: 999;
     }
 
     #next-btn:hover {
@@ -85,9 +87,10 @@
     </div>
   </div>
 
+  <!-- Next button -->
   <button id="next-btn">Next</button>
 
-  <!-- Lyd -->
+  <!-- Sounds -->
   <audio id="cheer-sound" preload="auto">
     <source src="./sounds/cheer.mp3" type="audio/mpeg" />
   </audio>
@@ -95,6 +98,8 @@
     <source src="./sounds/fart_echo.mp3" type="audio/mpeg" />
   </audio>
 
+  <!-- Socket.io logic -->
   <script type="module" src="./main.js"></script>
+
 </body>
 </html>
