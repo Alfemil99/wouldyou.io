@@ -10,7 +10,7 @@ require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
 
-// 🟢 CORS: Sæt dine frontend-domæner her!
+// 🟢 CORS: Vercel-domæner
 const corsOptions = {
   origin: [
     "https://v-r-eight.vercel.app",
@@ -42,48 +42,39 @@ client.connect()
     console.error("❌ MongoDB connection failed:", err);
   });
 
-// 🌐 Simple GET route
+// 🌐 Simple test route
 app.get("/", (req, res) => {
   res.send("Would You Rather backend is running!");
 });
 
-// 🔌 Socket.io logic
+// 🔌 Socket.io events
 io.on("connection", (socket) => {
   console.log("🔗 Socket connected:", socket.id);
 
-  // Get specific question (valgfri)
-  socket.on("get-question", async (questionId) => {
-    const q = await questions.findOne({ _id: questionId });
-    console.log("get-question:", questionId, q);
-    if (q) {
-      socket.emit("question-data", q);
-    } else {
-      socket.emit("question-data", { _id: "fail", question_red: "ERROR", question_blue: "Not found" });
-    }
-  });
-
-  // Get random question
+  // Hent random spørgsmål
   socket.on("get-random-question", async () => {
     try {
       const count = await questions.countDocuments();
       if (count === 0) {
-        console.log("⚠️ No questions in DB!");
+        console.log("⚠️ No questions found in DB!");
         socket.emit("question-data", {
           _id: "fail",
           question_red: "Oops!",
-          question_blue: "No questions found!"
+          question_blue: "No questions available!"
         });
         return;
       }
+
       const randomIndex = Math.floor(Math.random() * count);
       const randomQuestion = await questions.find().limit(1).skip(randomIndex).toArray();
-      console.log("🎲 Random question:", randomQuestion[0]);
+      console.log("🎲 Sending random question:", randomQuestion[0]);
+
       socket.emit("question-data", randomQuestion[0]);
     } catch (err) {
-      console.error("❌ get-random-question failed:", err);
+      console.error("❌ get-random-question error:", err);
       socket.emit("question-data", {
         _id: "fail",
-        question_red: "Error",
+        question_red: "Server error",
         question_blue: "Try again!"
       });
     }
@@ -102,7 +93,7 @@ io.on("connection", (socket) => {
       const question = await questions.findOne({ _id: questionId });
       const result = await votes.findOne({ question_id: questionId });
 
-      console.log(`✅ Voted ${choice} on ${questionId} | Totals:`, result);
+      console.log(`✅ Vote for ${choice} on ${questionId} | Totals:`, result);
 
       socket.emit("vote-result", {
         question_red: question?.question_red || "Unknown",
@@ -111,7 +102,7 @@ io.on("connection", (socket) => {
         votes_blue: result?.votes_blue || 0
       });
     } catch (err) {
-      console.error("❌ vote failed:", err);
+      console.error("❌ vote error:", err);
       socket.emit("vote-result", { error: "Vote failed" });
     }
   });

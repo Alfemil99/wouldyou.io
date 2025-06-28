@@ -4,11 +4,26 @@ const socket = io("https://v-r-backend.onrender.com");
 let currentQuestionId = "";
 let currentChoice = "";
 let hasVoted = false;
+let soundEnabled = true;
+
+// Lyd-toggle knap
+document.getElementById("mute-toggle").onclick = () => {
+  soundEnabled = !soundEnabled;
+  document.getElementById("mute-toggle").innerText = soundEnabled ? "🔊" : "🔇";
+
+  // Stop evt. kørende lyd med det samme
+  const cheer = document.getElementById("cheer-sound");
+  const fart = document.getElementById("fart-sound");
+  cheer.pause();
+  cheer.currentTime = 0;
+  fart.pause();
+  fart.currentTime = 0;
+};
 
 // Første gang: hent random spørgsmål
 socket.emit("get-random-question");
 
-// Modtag spørgsmål
+// Når vi får et spørgsmål
 socket.on("question-data", (data) => {
   currentQuestionId = data._id || "fail";
 
@@ -31,7 +46,6 @@ function handleClick(choice) {
   if (!hasVoted) {
     vote(choice);
   } else {
-    // Hvis du allerede har stemt, så hopper du videre!
     loadNextQuestion();
   }
 }
@@ -42,6 +56,7 @@ function vote(choice) {
   socket.emit("vote", { questionId: currentQuestionId, choice });
 }
 
+// Når vi får resultatet
 socket.on("vote-result", (data) => {
   const total = data.votes_red + data.votes_blue;
   const redPercent = Math.round((data.votes_red / total) * 100);
@@ -63,32 +78,41 @@ socket.on("vote-result", (data) => {
   `;
 
   // Lyd
-  const cheer = document.getElementById("cheer-sound");
-  const fart = document.getElementById("fart-sound");
+  if (soundEnabled) {
+    const cheer = document.getElementById("cheer-sound");
+    const fart = document.getElementById("fart-sound");
 
-  let votedForMajority = false;
-  if (currentChoice === "red") {
-    votedForMajority = redPercent >= bluePercent;
-  } else {
-    votedForMajority = bluePercent >= redPercent;
-  }
+    let votedForMajority = false;
+    if (currentChoice === "red") {
+      votedForMajority = redPercent >= bluePercent;
+    } else {
+      votedForMajority = bluePercent >= redPercent;
+    }
 
-  if (votedForMajority) {
-    cheer.currentTime = 0;
-    cheer.play().catch(() => {});
-  } else {
-    fart.currentTime = 0;
-    fart.play().catch(() => {});
+    if (votedForMajority) {
+      cheer.currentTime = 0;
+      cheer.play().catch(() => {});
+    } else {
+      fart.currentTime = 0;
+      fart.play().catch(() => {});
+    }
   }
 });
 
-// Loader næste spørgsmål
+// Hent næste spørgsmål
 function loadNextQuestion() {
+  // Stop lyde straks
+  const cheer = document.getElementById("cheer-sound");
+  const fart = document.getElementById("fart-sound");
+  cheer.pause();
+  cheer.currentTime = 0;
+  fart.pause();
+  fart.currentTime = 0;
+
   hasVoted = false;
   currentChoice = "";
   currentQuestionId = "";
 
-  // Reset panels
   document.getElementById("red").style.flex = 1;
   document.getElementById("blue").style.flex = 1;
 
