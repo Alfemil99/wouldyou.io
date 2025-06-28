@@ -15,6 +15,8 @@ app.use(express.json());
 // ✅ CORS til Vercel-domæner
 const corsOptions = {
   origin: [
+    "https://wouldyou.io",
+    "https://www.wouldyou.io",
     "https://v-r-eight.vercel.app",
     "https://v-r-alfemil99s-projects.vercel.app"
   ],
