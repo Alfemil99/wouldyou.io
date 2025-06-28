@@ -1,11 +1,10 @@
-
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 const socket = io("https://v-r-backend.onrender.com");
 
 let currentChoice = "";
 let hasVoted = false;
 
-// Første load
+// Første load: hent random question
 socket.emit("get-random-question");
 
 socket.on("question-data", (data) => {
@@ -20,7 +19,9 @@ function vote(choice) {
   if (hasVoted) return;
   hasVoted = true;
   currentChoice = choice;
-  socket.emit("vote", { questionId: "q1", choice }); // questionId bruges stadig som dummy
+
+  // For demo: sender dummy questionId (du kan ændre hvis du bruger specifikke)
+  socket.emit("vote", { questionId: "q1", choice });
 }
 
 socket.on("vote-result", (data) => {
@@ -28,8 +29,9 @@ socket.on("vote-result", (data) => {
   const redPercent = Math.round((data.votes_red / total) * 100);
   const bluePercent = 100 - redPercent;
 
-  document.getElementById("red").style.height = redPercent + "%";
-  document.getElementById("blue").style.height = bluePercent + "%";
+  // Animate panels
+  document.getElementById("red").style.flex = redPercent;
+  document.getElementById("blue").style.flex = bluePercent;
 
   document.getElementById("red").innerHTML = `
     <div>${data.question_red}</div>
@@ -42,8 +44,11 @@ socket.on("vote-result", (data) => {
     <div>${bluePercent}%</div>
   `;
 
-  // Lyd
+  // Play sound!
+  const cheer = document.getElementById("cheer-sound");
+  const fart = document.getElementById("fart-sound");
   let votedForMajority = false;
+
   if (currentChoice === "red") {
     votedForMajority = redPercent >= bluePercent;
   } else {
@@ -51,9 +56,11 @@ socket.on("vote-result", (data) => {
   }
 
   if (votedForMajority) {
-    document.getElementById("cheer-sound").play();
+    cheer.currentTime = 0;
+    cheer.play().catch(() => {});
   } else {
-    document.getElementById("fart-sound").play();
+    fart.currentTime = 0;
+    fart.play().catch(() => {});
   }
 
   document.getElementById("next-btn").style.display = "block";
@@ -64,10 +71,11 @@ document.getElementById("next-btn").onclick = () => {
   currentChoice = "";
   document.getElementById("next-btn").style.display = "none";
 
-  socket.emit("get-random-question");
-
-  document.getElementById("red").style.height = "50%";
-  document.getElementById("blue").style.height = "50%";
+  // Reset panels
+  document.getElementById("red").style.flex = 1;
+  document.getElementById("blue").style.flex = 1;
   document.getElementById("red").innerHTML = "<div>Loading...</div>";
   document.getElementById("blue").innerHTML = "<div>Loading...</div>";
+
+  socket.emit("get-random-question");
 };

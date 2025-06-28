@@ -1,37 +1,53 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Would You Rather</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       overflow: hidden;
     }
+
     #container {
+      display: flex;
+      flex-direction: column;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
+      text-align: center;
     }
+
+    #title {
+      flex: 0 0 auto;
+      background: #222;
+      color: white;
+      padding: 1rem;
+      font-weight: bold;
+      font-size: clamp(1.2rem, 5vw, 2rem);
+    }
+
     .panel {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
+      transition: flex 0.6s ease;
       color: white;
       font-weight: bold;
-      font-size: clamp(1.5rem, 5vw, 3rem);
-      text-align: center;
-      transition: height 0.6s ease;
-      padding: 1rem;
+      font-size: clamp(1.5rem, 6vw, 3rem);
+      padding: 2rem;
     }
-    .red { background: #e74c3c; height: 50%; }
-    .blue { background: #3498db; height: 50%; }
-    .panel div { margin: 0.5rem 0; word-break: break-word; }
+
+    .red { background: #e74c3c; }
+    .blue { background: #3498db; }
+
+    .panel div {
+      margin: 0.5rem 0;
+      word-break: break-word;
+    }
 
     #next-btn {
       display: none;
@@ -39,17 +55,31 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       padding: 1rem 2rem;
-      z-index: 10;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: background 0.3s ease;
+    }
+
+    #next-btn:hover {
+      background: #555;
     }
   </style>
 </head>
 <body>
+
   <div id="container">
+    <div id="title">WOULD YOU RATHER</div>
+
     <div id="red" class="panel red">
       <div id="red-label">Loading...</div>
     </div>
+
     <div id="blue" class="panel blue">
       <div id="blue-label">Loading...</div>
     </div>
@@ -57,8 +87,13 @@
 
   <button id="next-btn">Next</button>
 
-  <audio id="cheer-sound" src="./sounds/cheer.mp3"></audio>
-  <audio id="fart-sound" src="./sounds/fart_echo.mp3"></audio>
+  <!-- Lyd -->
+  <audio id="cheer-sound" preload="auto">
+    <source src="./sounds/cheer.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="fart-sound" preload="auto">
+    <source src="./sounds/fart_echo.mp3" type="audio/mpeg" />
+  </audio>
 
   <script type="module" src="./main.js"></script>
 </body>
