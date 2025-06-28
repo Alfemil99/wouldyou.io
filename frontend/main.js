@@ -1,28 +1,19 @@
+
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 const socket = io("https://v-r-backend.onrender.com");
 
 const questionId = "q1";
 let hasVoted = false;
 
-document.body.innerHTML = `
-  <main style="font-family: sans-serif; text-align: center; padding: 2rem;">
-    <h2 id="question">Loading...</h2>
-    <div id="options" style="margin-top: 2rem;">
-      <button id="btnRed" style="padding: 1rem 2rem; background-color: red; color: white; font-size: 1.2rem; margin-right: 1rem;">🔴</button>
-      <button id="btnBlue" style="padding: 1rem 2rem; background-color: blue; color: white; font-size: 1.2rem;">🔵</button>
-    </div>
-    <div id="result" style="margin-top: 2rem; font-size: 1.2rem;"></div>
-  </main>
-`;
-
 socket.emit("get-question", questionId);
 
 socket.on("question-data", (data) => {
-  document.getElementById("question").innerText = `${data.question_red} 🔴 eller 🔵 ${data.question_blue}?`;
+  document.getElementById("red-label").innerText = data.question_red;
+  document.getElementById("blue-label").innerText = data.question_blue;
 });
 
-document.getElementById("btnRed").onclick = () => vote("red");
-document.getElementById("btnBlue").onclick = () => vote("blue");
+document.getElementById("red").onclick = () => vote("red");
+document.getElementById("blue").onclick = () => vote("blue");
 
 function vote(choice) {
   if (hasVoted) return;
@@ -35,9 +26,34 @@ socket.on("vote-result", (data) => {
   const redPercent = Math.round((data.votes_red / total) * 100);
   const bluePercent = 100 - redPercent;
 
-  document.getElementById("options").style.display = "none";
-  document.getElementById("result").innerHTML = `
-    🔴 ${data.question_red}: ${redPercent}% (${data.votes_red} stemmer)<br>
-    🔵 ${data.question_blue}: ${bluePercent}% (${data.votes_blue} stemmer)
+  // Animate panels
+  document.getElementById("red").style.height = redPercent + "%";
+  document.getElementById("blue").style.height = bluePercent + "%";
+
+  document.getElementById("red").innerHTML = `
+    <div>${data.question_red}</div>
+    <div>${data.votes_red} votes</div>
+    <div>${redPercent}%</div>
   `;
+  document.getElementById("blue").innerHTML = `
+    <div>${data.question_blue}</div>
+    <div>${data.votes_blue} votes</div>
+    <div>${bluePercent}%</div>
+  `;
+
+  // Tjek om bruger valgte flertal
+  let votedForMajority = false;
+  if (choice === "red") {
+    votedForMajority = redPercent >= bluePercent;
+  } else {
+    votedForMajority = bluePercent >= redPercent;
+  }
+
+  // Spil lyd
+  if (votedForMajority) {
+    document.getElementById("cheer-sound").play();
+  } else {
+    document.getElementById("fart-sound").play();
+  }
 });
+
