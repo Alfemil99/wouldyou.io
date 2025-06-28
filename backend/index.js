@@ -127,7 +127,7 @@ io.on("connection", (socket) => {
         { upsert: true }
       );
 
-      const question = await questions.findOne({ _id: new ObjectId(questionId) });
+      const question = await questions.findOne({ _id: questionId });
       const result = await votes.findOne({ question_id: questionId });
 
       console.log(`✅ Vote saved: ${choice} on ${questionId}`);
