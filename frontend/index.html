@@ -31,16 +31,19 @@
     }
     .red { background: #e74c3c; height: 50%; }
     .blue { background: #3498db; height: 50%; }
-    .panel div {
-      margin: 0.5rem 0;
-    }
+    .panel div { margin: 0.5rem 0; word-break: break-word; }
 
-    /* Sørg for at alt tekst kan wraps på mobil */
-    .panel div {
-      word-break: break-word;
+    #next-btn {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      padding: 1rem 2rem;
+      z-index: 10;
     }
   </style>
-
 </head>
 <body>
   <div id="container">
@@ -52,8 +55,11 @@
     </div>
   </div>
 
+  <button id="next-btn">Next</button>
+
   <audio id="cheer-sound" src="./sounds/cheer.mp3"></audio>
   <audio id="fart-sound" src="./sounds/fart_echo.mp3"></audio>
+
   <script type="module" src="./main.js"></script>
 </body>
 </html>

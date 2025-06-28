@@ -2,10 +2,11 @@
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 const socket = io("https://v-r-backend.onrender.com");
 
-const questionId = "q1";
+let currentChoice = "";
 let hasVoted = false;
 
-socket.emit("get-question", questionId);
+// Første load
+socket.emit("get-random-question");
 
 socket.on("question-data", (data) => {
   document.getElementById("red-label").innerText = data.question_red;
@@ -18,7 +19,8 @@ document.getElementById("blue").onclick = () => vote("blue");
 function vote(choice) {
   if (hasVoted) return;
   hasVoted = true;
-  socket.emit("vote", { questionId, choice });
+  currentChoice = choice;
+  socket.emit("vote", { questionId: "q1", choice }); // questionId bruges stadig som dummy
 }
 
 socket.on("vote-result", (data) => {
@@ -26,7 +28,6 @@ socket.on("vote-result", (data) => {
   const redPercent = Math.round((data.votes_red / total) * 100);
   const bluePercent = 100 - redPercent;
 
-  // Animate panels
   document.getElementById("red").style.height = redPercent + "%";
   document.getElementById("blue").style.height = bluePercent + "%";
 
@@ -41,19 +42,32 @@ socket.on("vote-result", (data) => {
     <div>${bluePercent}%</div>
   `;
 
-  // Tjek om bruger valgte flertal
+  // Lyd
   let votedForMajority = false;
-  if (choice === "red") {
+  if (currentChoice === "red") {
     votedForMajority = redPercent >= bluePercent;
   } else {
     votedForMajority = bluePercent >= redPercent;
   }
 
-  // Spil lyd
   if (votedForMajority) {
     document.getElementById("cheer-sound").play();
   } else {
     document.getElementById("fart-sound").play();
   }
+
+  document.getElementById("next-btn").style.display = "block";
 });
 
+document.getElementById("next-btn").onclick = () => {
+  hasVoted = false;
+  currentChoice = "";
+  document.getElementById("next-btn").style.display = "none";
+
+  socket.emit("get-random-question");
+
+  document.getElementById("red").style.height = "50%";
+  document.getElementById("blue").style.height = "50%";
+  document.getElementById("red").innerHTML = "<div>Loading...</div>";
+  document.getElementById("blue").innerHTML = "<div>Loading...</div>";
+};
