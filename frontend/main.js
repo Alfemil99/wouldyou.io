@@ -8,41 +8,46 @@ let hasVoted = false;
 // Første gang: hent random spørgsmål
 socket.emit("get-random-question");
 
-// Når vi modtager et spørgsmål
+// Modtag spørgsmål
 socket.on("question-data", (data) => {
-  // Gem det aktuelle spørgsmål ID!
   currentQuestionId = data._id || "fail";
 
   document.getElementById("red-label").innerText = data.question_red;
   document.getElementById("blue-label").innerText = data.question_blue;
 
-  // Reset panels hver gang
+  // Reset flex til 50/50
   document.getElementById("red").style.flex = 1;
   document.getElementById("blue").style.flex = 1;
 
-  document.getElementById("next-btn").style.display = "none";
+  hasVoted = false;
+  currentChoice = "";
 });
 
-// Klik på paneler
-document.getElementById("red").onclick = () => vote("red");
-document.getElementById("blue").onclick = () => vote("blue");
+// Klik paneler
+document.getElementById("red").onclick = () => handleClick("red");
+document.getElementById("blue").onclick = () => handleClick("blue");
+
+function handleClick(choice) {
+  if (!hasVoted) {
+    vote(choice);
+  } else {
+    // Hvis du allerede har stemt, så hopper du videre!
+    loadNextQuestion();
+  }
+}
 
 function vote(choice) {
-  if (hasVoted) return;
   hasVoted = true;
   currentChoice = choice;
-
-  // Send korrekt ID!
   socket.emit("vote", { questionId: currentQuestionId, choice });
 }
 
-// Når vi får stemmeresultat
 socket.on("vote-result", (data) => {
   const total = data.votes_red + data.votes_blue;
   const redPercent = Math.round((data.votes_red / total) * 100);
   const bluePercent = 100 - redPercent;
 
-  // Animate flex
+  // Animate panels
   document.getElementById("red").style.flex = redPercent;
   document.getElementById("blue").style.flex = bluePercent;
 
@@ -57,7 +62,7 @@ socket.on("vote-result", (data) => {
     <div>${bluePercent}%</div>
   `;
 
-  // Lyd!
+  // Lyd
   const cheer = document.getElementById("cheer-sound");
   const fart = document.getElementById("fart-sound");
 
@@ -75,23 +80,20 @@ socket.on("vote-result", (data) => {
     fart.currentTime = 0;
     fart.play().catch(() => {});
   }
-
-  // Vis Next-knap
-  document.getElementById("next-btn").style.display = "block";
 });
 
-// Klik på Next
-document.getElementById("next-btn").onclick = () => {
+// Loader næste spørgsmål
+function loadNextQuestion() {
   hasVoted = false;
   currentChoice = "";
-  document.getElementById("next-btn").style.display = "none";
+  currentQuestionId = "";
 
   // Reset panels
   document.getElementById("red").style.flex = 1;
   document.getElementById("blue").style.flex = 1;
 
-  document.getElementById("red").innerHTML = `<div>Loading...</div>`;
-  document.getElementById("blue").innerHTML = `<div>Loading...</div>`;
+  document.getElementById("red").innerHTML = "<div id='red-label'>Loading...</div>";
+  document.getElementById("blue").innerHTML = "<div id='blue-label'>Loading...</div>";
 
   socket.emit("get-random-question");
-};
+}
