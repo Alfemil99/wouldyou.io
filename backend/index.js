@@ -17,9 +17,15 @@ let pollsCollection;
 async function connectDB() {
   try {
     await client.connect();
-    const db = client.db("would-you-rather");
-    pollsCollection = db.collection("polls");
-    console.log("✅ Connected to MongoDB");
+    const db = client.db("would-you-rather"); // 🎯 Sørg for dette matcher din cluster!
+    pollsCollection = db.collection("polls");  // 🎯 Vigtig! Må IKKE være 'questions' el.lign.
+
+    console.log("✅ Connected to DB:", db.databaseName);
+    console.log("✅ pollsCollection namespace:", pollsCollection.namespace);
+
+    // BONUS: Vis ALLE collections i DB
+    const collections = await db.listCollections().toArray();
+    console.log("📂 Collections in DB:", collections.map(col => col.name));
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
   }
@@ -60,6 +66,7 @@ io.on("connection", (socket) => {
   socket.on("get-random-poll", async ({ category }) => {
     if (!pollsCollection) {
       console.error("❌ pollsCollection not initialized");
+      socket.emit("poll-data", null);
       return;
     }
 
@@ -92,15 +99,17 @@ io.on("connection", (socket) => {
     console.log("🗳️ === Incoming vote ===");
     console.log("pollId raw:", pollId, "| typeof:", typeof pollId);
 
-    if (!pollsCollection) {
-      console.error("❌ pollsCollection not initialized");
-      socket.emit("vote-result", { error: "Server error" });
+    console.log("✅ pollsCollection namespace:", pollsCollection.namespace);
+
+    // TEST: Kør direkte findOne
+    const test = await pollsCollection.findOne({ _id: pollId });
+    console.log("🔍 Direct findOne result:", test);
+
+    if (!test) {
+      console.warn("⚠️ Poll not found at findOne stage");
+      socket.emit("vote-result", { error: "Poll not found" });
       return;
     }
-
-    // Test findOne direkte
-    const test = await pollsCollection.findOne({ _id: pollId });
-    console.log("🔍 Direct findOne test:", test);
 
     const result = await pollsCollection.findOneAndUpdate(
       { _id: pollId },
@@ -111,12 +120,16 @@ io.on("connection", (socket) => {
     console.log("🔄 findOneAndUpdate result:", result);
 
     if (!result.value) {
-      console.warn("⚠️ No poll found for that ID");
+      console.warn("⚠️ Poll not found at update stage");
       socket.emit("vote-result", { error: "Poll not found" });
       return;
     }
 
     io.emit("vote-result", result.value);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`❌ Client disconnected: ${socket.id}`);
   });
 });
 
