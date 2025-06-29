@@ -30,19 +30,26 @@ window.goHome = function () {
 
 // === Load one random poll ===
 function loadPoll() {
+  console.log("🔄 Loading poll for category:", currentCategory);
   socket.emit("get-random-poll", { category: currentCategory });
   nextBtn.style.display = "none";
 }
 
 // === Receive poll ===
 socket.on("poll-data", (poll) => {
+  console.log("📥 Received poll-data:", poll);
+
   if (!poll) {
     pollContainer.innerHTML = "<p>No polls available for this category.</p>";
     return;
   }
 
   // ✅ Always store ID as string!
-  activePollId = poll._id.$oid || poll._id;
+  activePollId = typeof poll._id === "object" && poll._id.$oid
+    ? poll._id.$oid
+    : String(poll._id);
+
+  console.log("✅ activePollId:", activePollId, "| typeof:", typeof activePollId);
 
   pollContainer.innerHTML = "";
 
@@ -57,6 +64,7 @@ socket.on("poll-data", (poll) => {
     optionDiv.innerText = opt.text;
 
     optionDiv.onclick = () => {
+      console.log("🗳️ Emitting vote with pollId:", activePollId, "| optionIndex:", index);
       socket.emit("vote", { pollId: activePollId, optionIndex: index });
     };
 
@@ -66,6 +74,8 @@ socket.on("poll-data", (poll) => {
 
 // === Show vote result with % ===
 socket.on("vote-result", (poll) => {
+  console.log("📊 Received vote-result:", poll);
+
   if (!poll || !poll.options) return;
 
   const options = pollContainer.querySelectorAll(".poll-option");
