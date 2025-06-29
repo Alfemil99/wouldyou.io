@@ -84,22 +84,27 @@ io.on("connection", (socket) => {
 
   // === Handle vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
+    console.log("🗳️ === Incoming vote ===");
+    console.log("pollId raw:", pollId);
+    console.log("typeof pollId:", typeof pollId);
+
     try {
-      console.log(`🗳️ Incoming vote: pollId=${pollId}, optionIndex=${optionIndex}`);
+      const objId = new ObjectId(pollId);
+      console.log("Converted ObjectId:", objId);
 
       const result = await pollsCollection.findOneAndUpdate(
-        { _id: new ObjectId(pollId) },
+        { _id: objId },
         { $inc: { [`options.${optionIndex}.votes`]: 1 } },
         { returnDocument: "after" }
       );
 
       if (!result.value) {
-        console.warn("⚠️ No poll found for that ID");
+        console.warn("⚠️ No poll found for that ID — check if pollId is correct and matches your DB");
         socket.emit("vote-result", { error: "Poll not found" });
         return;
       }
 
-      console.log(`✅ Vote recorded for poll ${pollId}`);
+      console.log(`✅ Vote recorded for poll ${pollId}, option ${optionIndex}`);
       socket.emit("vote-result", result.value);
     } catch (err) {
       console.error("❌ Failed to record vote:", err);
