@@ -4,13 +4,14 @@ const socket = io("https://v-r-backend.onrender.com");
 
 // === State ===
 let currentCategory = null;
+let activePollId = null;
 
 // === Selectors ===
 const categorySelector = document.getElementById("category-selector");
 const pollContainer = document.getElementById("poll-container");
 const nextBtn = document.getElementById("next-btn");
 
-// === Category selected ===
+// === Select category ===
 window.selectCategory = function (category) {
   currentCategory = category;
   categorySelector.style.display = "none";
@@ -18,20 +19,32 @@ window.selectCategory = function (category) {
   loadPoll();
 };
 
-// === Load a poll for the current category ===
+// === Go back to landing page ===
+window.goHome = function () {
+  currentCategory = null;
+  activePollId = null;
+  pollContainer.style.display = "none";
+  nextBtn.style.display = "none";
+  categorySelector.style.display = "flex";
+};
+
+// === Load one random poll ===
 function loadPoll() {
   socket.emit("get-random-poll", { category: currentCategory });
   nextBtn.style.display = "none";
 }
 
-// === Receive poll data ===
+// === Receive poll ===
 socket.on("poll-data", (poll) => {
   if (!poll) {
     pollContainer.innerHTML = "<p>No polls available for this category.</p>";
     return;
   }
 
-  pollContainer.innerHTML = ""; // Clear old poll
+  // ✅ Always store ID as string!
+  activePollId = poll._id.$oid || poll._id;
+
+  pollContainer.innerHTML = "";
 
   const question = document.createElement("div");
   question.classList.add("poll-question");
@@ -44,15 +57,17 @@ socket.on("poll-data", (poll) => {
     optionDiv.innerText = opt.text;
 
     optionDiv.onclick = () => {
-      socket.emit("vote", { pollId: poll._id, optionIndex: index });
+      socket.emit("vote", { pollId: activePollId, optionIndex: index });
     };
 
     pollContainer.appendChild(optionDiv);
   });
 });
 
-// === Receive vote result ===
+// === Show vote result with % ===
 socket.on("vote-result", (poll) => {
+  if (!poll || !poll.options) return;
+
   const options = pollContainer.querySelectorAll(".poll-option");
   const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
 
@@ -65,7 +80,7 @@ socket.on("vote-result", (poll) => {
   nextBtn.style.display = "inline-block";
 });
 
-// === Next Poll click ===
+// === Next Poll ===
 nextBtn.onclick = () => {
   loadPoll();
 };

@@ -63,6 +63,7 @@ io.on("connection", (socket) => {
       const count = await pollsCollection.countDocuments(query);
 
       if (count === 0) {
+        console.log(`⚠️ No polls in category: ${category}`);
         socket.emit("poll-data", null);
         return;
       }
@@ -84,13 +85,21 @@ io.on("connection", (socket) => {
   // === Handle vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
     try {
+      console.log(`🗳️ Incoming vote: pollId=${pollId}, optionIndex=${optionIndex}`);
+
       const result = await pollsCollection.findOneAndUpdate(
         { _id: new ObjectId(pollId) },
         { $inc: { [`options.${optionIndex}.votes`]: 1 } },
         { returnDocument: "after" }
       );
 
-      console.log(`✅ Vote recorded for poll ${pollId} option ${optionIndex}`);
+      if (!result.value) {
+        console.warn("⚠️ No poll found for that ID");
+        socket.emit("vote-result", { error: "Poll not found" });
+        return;
+      }
+
+      console.log(`✅ Vote recorded for poll ${pollId}`);
       socket.emit("vote-result", result.value);
     } catch (err) {
       console.error("❌ Failed to record vote:", err);
@@ -103,7 +112,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// === REST route (optional) ===
+// === Example REST route ===
 app.get("/", (req, res) => {
   res.send("✅ WouldYou.IO backend is running!");
 });

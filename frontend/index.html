@@ -28,6 +28,7 @@
       width: 100%; text-align: center;
       background: #111; padding: 1rem; font-weight: bold;
       font-size: clamp(1rem, 4vw, 2rem);
+      cursor: pointer;
     }
 
     #category-selector {
@@ -88,9 +89,10 @@
 </head>
 
 <body>
-  <header>WOULDYOU.IO</header>
+  <!-- Header -->
+  <header onclick="goHome()">WOULDYOU.IO</header>
 
-  <!-- Category selector -->
+  <!-- Landing page: category selector -->
   <div id="category-selector">
     <button onclick="selectCategory('Anime')">Anime</button>
     <button onclick="selectCategory('Games')">Games</button>
@@ -101,7 +103,7 @@
 
   <!-- Poll container -->
   <div id="poll-container">
-    <!-- Question + options injected here -->
+    <!-- Question + options injected here by main.js -->
   </div>
 
   <!-- Next poll button -->
