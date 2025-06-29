@@ -201,6 +201,7 @@ function showAdPopup() {
     <script>
         (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
+    <button id="closeAd">Continue</button>
   `;
 
   document.body.appendChild(popup);
