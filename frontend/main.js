@@ -188,7 +188,7 @@ function showAdPopup() {
   popup.style.zIndex = "9999";
 
   popup.innerHTML = `
-    <h3>Advertisement 🤑</h3>
+    <h3>Advertisement</h3>
     <ins class="adsbygoogle"
         style="display:block"
         data-ad-client="ca-pub-5747384081350738"
@@ -209,8 +209,6 @@ function showAdPopup() {
     popup.remove();
   };
 }
-
-
 
 function startTapHintTimer() {
   clearTimeout(tapHintTimeout);
