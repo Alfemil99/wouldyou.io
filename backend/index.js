@@ -7,7 +7,7 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 
 // === MongoDB setup ===
 const uri = process.env.MONGODB_URI || "your_mongodb_connection_string";
@@ -58,8 +58,7 @@ const io = new Server(server, {
   }
 });
 
-// === Socket.IO logic ===
-// Important: only start socket when DB is ready!
+// === Start server AFTER DB ready ===
 async function startServer() {
   await connectDB();
 
@@ -100,14 +99,12 @@ async function startServer() {
       console.log("typeof pollId:", typeof pollId);
 
       try {
-        const objId = new ObjectId(pollId);
-        console.log("Converted ObjectId:", objId);
-
-        const found = await pollsCollection.findOne({ _id: objId });
-        console.log("Test findOne result:", found);
+        // Since _id is now a STRING → no ObjectId conversion!
+        const found = await pollsCollection.findOne({ _id: pollId });
+        console.log("findOne result:", found);
 
         const result = await pollsCollection.findOneAndUpdate(
-          { _id: objId },
+          { _id: pollId },
           { $inc: { [`options.${optionIndex}.votes`]: 1 } },
           { returnDocument: "after" }
         );
@@ -137,7 +134,7 @@ async function startServer() {
     res.send("✅ WouldYou.IO backend is running!");
   });
 
-  // === Start server ===
+  // === Start HTTP server ===
   const PORT = process.env.PORT || 3001;
   server.listen(PORT, () => {
     console.log(`🚀 Server listening on port ${PORT}`);
