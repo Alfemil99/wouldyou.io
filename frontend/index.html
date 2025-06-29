@@ -3,82 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <title>WOULDYOU.IO</title>
-  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="icon" href="logo.svg" type="image/svg+xml" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5747384081350738"
-    crossorigin="anonymous"></script>
-
   <!-- Google Font: Outfit -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5747384081350738" crossorigin="anonymous"></script>
 
   <style>
     body {
       font-family: 'Outfit', sans-serif;
+      background: #f9f9f9;
+      color: #111;
       text-align: center;
-      margin: 2rem;
+      padding: 2rem;
     }
 
     header {
+      font-weight: 800;
+      font-size: 2.2rem;
+      margin-bottom: 2rem;
       cursor: pointer;
-      font-size: 2rem;
-      font-weight: bold;
+    }
+
+    .categories {
       margin-bottom: 2rem;
     }
 
     .category {
+      display: inline-block;
       padding: 10px 20px;
       margin: 5px;
-      border: 1px solid #333;
+      border: 2px solid #111;
+      border-radius: 20px;
       cursor: pointer;
+      transition: background 0.2s, color 0.2s;
     }
 
+    .category:hover,
     .category.active {
-      background-color: #333;
-      color: white;
-    }
-
-    button {
-      margin: 10px;
-      padding: 10px 20px;
+      background: #111;
+      color: #fff;
     }
 
     #poll {
       margin-top: 2rem;
     }
+
+    #poll h2 {
+      font-size: 1.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .option {
+      display: block;
+      margin: 10px auto;
+      padding: 12px 24px;
+      border: 2px solid #111;
+      border-radius: 30px;
+      background: #fff;
+      cursor: pointer;
+      max-width: 300px;
+      transition: all 0.2s ease;
+    }
+
+    .option:hover {
+      background: #111;
+      color: #fff;
+    }
+
+    .result-bar {
+      height: 20px;
+      margin: 5px auto;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      max-width: 300px;
+    }
+
+    .result-fill {
+      height: 100%;
+      background: #111;
+      width: 0;
+      transition: width 0.5s ease;
+    }
+
+    .result-text {
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+
+    footer {
+      margin-top: 4rem;
+    }
   </style>
 </head>
 <body>
-  <!-- Home link -->
   <header onclick="goHome()">WOULDYOU.IO</header>
 
-  <!-- Category buttons -->
-  <div id="categories">
-    <button class="category" data-category="Anime">Anime</button>
-    <button class="category" data-category="Games">Games</button>
-    <button class="category" data-category="Politics">Politics</button>
-    <button class="category" data-category="Entertainment">Entertainment</button>
-    <button class="category" data-category="Funny">Funny</button>
+  <div class="categories">
+    <span class="category" onclick="selectCategory(this, 'Anime')">Anime</span>
+    <span class="category" onclick="selectCategory(this, 'Games')">Games</span>
+    <span class="category" onclick="selectCategory(this, 'Entertainment')">Entertainment</span>
+    <span class="category" onclick="selectCategory(this, 'Politics')">Politics</span>
+    <span class="category" onclick="selectCategory(this, 'Funny')">Funny</span>
   </div>
 
-  <!-- Poll container -->
   <div id="poll"></div>
 
-  <!-- AdSense slot example (optional) -->
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-5747384081350738"
-       data-ad-slot="1234567890"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
+  <footer>
+    <!-- AdSense Slot (f.eks.) -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-5747384081350738"
+         data-ad-slot="1234567890"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </footer>
 
-  <!-- Socket.IO logic -->
-  <script type="module" src="/main.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

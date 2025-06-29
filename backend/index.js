@@ -34,10 +34,12 @@ const allowedOrigins = [
   "http://localhost:3000"
 ];
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true
+  })
+);
 
 // === HTTP & Socket.IO server ===
 const server = http.createServer(app);
@@ -64,6 +66,7 @@ io.on("connection", (socket) => {
     try {
       const count = await pollsCollection.countDocuments({ category, approved: true });
       if (count === 0) {
+        console.warn(`⚠️ No polls found in category: ${category}`);
         socket.emit("poll-data", null);
         return;
       }
@@ -92,28 +95,27 @@ io.on("connection", (socket) => {
     }
 
     console.log("🗳️ === Incoming vote ===");
-    console.log("pollId:", pollId, "| typeof:", typeof pollId);
-    console.log("optionIndex:", optionIndex);
+    console.log("pollId raw:", pollId, "| typeof:", typeof pollId);
 
-    try {
-      const result = await pollsCollection.findOneAndUpdate(
-        { _id: pollId },  // ✅ _id is now a string!
-        { $inc: { [`options.${optionIndex}.votes`]: 1 } },
-        { returnDocument: "after" }
-      );
+    const query = { _id: pollId }; // ✅ Only string!
 
-      if (!result.value) {
-        console.warn("⚠️ No poll found for that ID — check your DB");
-        socket.emit("vote-result", { error: "Poll not found" });
-        return;
-      }
+    const check = await pollsCollection.findOne(query);
+    console.log("findOne result:", check);
 
-      console.log("✅ Vote registered for poll:", pollId);
-      io.emit("vote-result", result.value);
-    } catch (err) {
-      console.error("❌ Failed to process vote:", err);
-      socket.emit("vote-result", { error: "Failed to process vote" });
+    const result = await pollsCollection.findOneAndUpdate(
+      query,
+      { $inc: { [`options.${optionIndex}.votes`]: 1 } },
+      { returnDocument: "after" }
+    );
+
+    if (!result.value) {
+      console.warn("⚠️ No poll found for that ID");
+      socket.emit("vote-result", { error: "Poll not found" });
+      return;
     }
+
+    console.log(`✅ Vote registered for poll: ${pollId}`);
+    io.emit("vote-result", result.value);
   });
 
   socket.on("disconnect", () => {
