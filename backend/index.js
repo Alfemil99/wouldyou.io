@@ -30,8 +30,8 @@ app.use(express.json());
 
 // === CORS ===
 const allowedOrigins = [
-  "https://www.wouldyou.io",
-  "http://localhost:3000" // for local dev
+  "wouldyou.io",
+  "localhost:3000" // for local dev
 ];
 app.use(cors({
   origin: allowedOrigins,
