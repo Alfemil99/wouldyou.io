@@ -6,9 +6,9 @@
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Google AdSense-->
+  <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5747384081350738"
-      crossorigin="anonymous"></script>
+    crossorigin="anonymous"></script>
 
   <!-- Google Font: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,104 +16,94 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
   <style>
-  html, body {
-    margin: 0; padding: 0; height: 100%; overflow: hidden;
-    background: #222;
-    font-family: "Outfit", sans-serif;
-    user-select: none; /* Globalt: gør siden ikke-markerbar */
-    -webkit-user-select: none; /* Safari support */
-  }
+    html, body {
+      margin: 0; padding: 0; height: 100%; overflow-x: hidden;
+      background: #222;
+      font-family: "Outfit", sans-serif;
+      user-select: none;
+    }
 
-  *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; }
 
-  header {
-    background: #222; color: white; text-align: center;
-    padding: 1rem;
-    font-weight: bold;
-    font-size: clamp(1rem, 4vw, 1.8rem);
-    user-select: none; /* Sikrer at logo og emoji ikke kan markeres */
-  }
+    header {
+      background: #222; color: white; text-align: center;
+      padding: 1rem; font-weight: bold;
+      font-size: clamp(1rem, 4vw, 1.8rem);
+    }
 
-  #mute-toggle, #create-btn {
-    margin: 0 0.5rem; cursor: pointer; user-select: none;
-    -webkit-user-select: none;
-  }
+    #mute-toggle, #create-btn {
+      margin: 0 0.5rem; cursor: pointer;
+    }
 
-  #container {
-    display: flex; flex-direction: column;
-    height: calc(100dvh - 8rem); /* header + footer */
-  }
+    #poll-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
 
-  .panel {
-    flex-grow: 1;
-    display: flex; justify-content: center; align-items: center;
-    transition: flex-grow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    color: white; text-align: center;
-    padding: 2rem; will-change: flex-grow;
-    user-select: none;
-  }
+    .poll-card {
+      background: #333; color: white;
+      border-radius: 8px; padding: 1rem;
+      display: flex; flex-direction: column;
+      gap: 0.5rem; cursor: pointer;
+      transition: transform 0.2s ease;
+    }
 
-  .choice-text .question {
-    font-size: clamp(1.2rem, 5vw, 2rem);
-    font-weight: bold; margin-bottom: 0.5rem;
-  }
+    .poll-card:hover {
+      transform: scale(1.02);
+    }
 
-  .choice-text .votes,
-  .choice-text .percent {
-    margin-top: 0.2rem;
-    font-size: clamp(1rem, 4vw, 1.1rem);
-  }
+    .poll-option {
+      background: #444; padding: 0.5rem; border-radius: 4px;
+      cursor: pointer; transition: background 0.3s;
+    }
 
-  .red { background: #e74c3c; }
-  .blue { background: #3b53db; }
+    .poll-option:hover {
+      background: #555;
+    }
 
-  footer {
-    position: fixed; bottom: 0; left: 0; width: 100%;
-    background: #222; color: white; text-align: center;
-    padding: 1rem; font-size: 0.8rem;
-    user-select: none;
-  }
+    .poll-question {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
 
-  /* Popup modal */
-  #create-modal {
-    display: none;
-    position: fixed; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: #fff; color: #000;
-    padding: 2rem; border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    z-index: 9999; max-width: 90%; width: 400px;
-    text-align: center;
-    user-select: auto; /* Tillad markering i inputs */
-  }
+    .ad-slot {
+      background: #111; color: #fff;
+      border: 2px dashed #555; padding: 1rem;
+      text-align: center; border-radius: 8px;
+    }
 
-  #create-modal input {
-    width: 100%; margin-bottom: 0.5rem; padding: 0.5rem; font-size: 1rem;
-    user-select: text; /* Man skal kunne markere tekst i inputs */
-  }
+    footer {
+      background: #222; color: white; text-align: center;
+      padding: 1rem; font-size: 0.8rem;
+    }
 
-  #create-modal button.submit-btn {
-    background: #3b53db; color: #fff; border: none;
-    padding: 10px 20px; border-radius: 4px; cursor: pointer;
-    user-select: none;
-  }
+    #create-modal {
+      display: none;
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff; color: #000;
+      padding: 2rem; border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      z-index: 9999; max-width: 90%; width: 400px;
+      text-align: center;
+    }
 
-  #create-modal .close-btn {
-    position: absolute; top: 10px; right: 15px;
-    color: #e74c3c; font-size: 1.5rem; cursor: pointer;
-    user-select: none;
-  }
+    #create-modal input {
+      width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;
+    }
 
-  /* Tap to continue */
-  #tapHint {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    color: white; font-size: 1.5rem; opacity: 0.8;
-    display: none;
-    user-select: none;
-  }
-</style>
+    #create-modal button.submit-btn {
+      background: #3b53db; color: #fff; border: none;
+      padding: 10px 20px; border-radius: 4px; cursor: pointer;
+    }
 
+    #create-modal .close-btn {
+      position: absolute; top: 10px; right: 15px;
+      color: #e74c3c; font-size: 1.5rem; cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
@@ -122,59 +112,30 @@
     <span id="create-btn">📝</span> WOULDYOU.IO <span id="mute-toggle">🔊</span>
   </header>
 
-  <!-- Panels -->
-  <div id="container">
-    <div id="red" class="panel red">
-      <div class="choice-text">
-        <div class="question" id="red-label">Option A</div>
-        <div class="votes" id="red-votes"></div>
-        <div class="percent" id="red-percent"></div>
-      </div>
-    </div>
-    <div id="blue" class="panel blue">
-      <div class="choice-text">
-        <div class="question" id="blue-label">Option B</div>
-        <div class="votes" id="blue-votes"></div>
-        <div class="percent" id="blue-percent"></div>
-      </div>
-    </div>
+  <!-- Poll Grid -->
+  <div id="poll-container">
+    <!-- Dynamic polls will be injected here by main.js -->
   </div>
-
-  <!-- Ads by Google -->
-  <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-5747384081350738"
-      data-ad-slot="4958435717"
-      data-ad-format="auto"
-      data-full-width-responsive="true"></ins>
-  <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-
-
-  <!-- Tap to continue -->
-  <div id="tapHint">Tap to continue</div>
 
   <!-- Footer -->
   <footer>
     © 2025 WOULDYOU.IO — All rights reserved
-    |
-    <a href="javascript:googlefc.callbackQueue.push(googlefc.showRevocationMessage)">
-      Privacy & Cookies
-    </a>
+    | <a href="javascript:googlefc.callbackQueue.push(googlefc.showRevocationMessage)">Privacy & Cookies</a>
   </footer>
 
   <!-- Create Would You Rather Modal -->
   <div id="create-modal">
     <span class="close-btn" id="closeModal">❌</span>
-    <h3>📝 Add Your Own "Would You Rather"</h3>
-    <input type="text" id="optionA" placeholder="Option A (max 80 chars)">
-    <input type="text" id="optionB" placeholder="Option B (max 80 chars)">
-    <button class="submit-btn" id="submitDilemma">Submit</button>
+    <h3>📝 Add Your Own Poll</h3>
+    <input type="text" id="questionText" placeholder="Your question...">
+    <input type="text" id="option1" placeholder="Option 1">
+    <input type="text" id="option2" placeholder="Option 2">
+    <!-- Add more input fields dynamically with JS if you want up to 5 -->
+    <button class="submit-btn" id="submitPoll">Submit</button>
     <div id="create-status"></div>
   </div>
 
-  <!-- Sounds -->
+  <!-- Sounds (optional) -->
   <audio id="cheer-sound" preload="auto">
     <source src="./sounds/cheer.mp3" type="audio/mpeg" />
   </audio>
@@ -182,7 +143,7 @@
     <source src="./sounds/fart_echo.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- Script -->
+  <!-- Main Script -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>
