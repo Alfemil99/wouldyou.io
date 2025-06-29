@@ -16,117 +16,69 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
   <style>
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      background: #222; color: #fff;
-      font-family: "Outfit", sans-serif;
-      display: flex; flex-direction: column; align-items: center;
-      user-select: none;
+    body {
+      font-family: 'Outfit', sans-serif;
+      text-align: center;
+      margin: 2rem;
     }
 
     header {
-      width: 100%; text-align: center;
-      background: #111; padding: 1rem; font-weight: bold;
-      font-size: clamp(1rem, 4vw, 2rem);
+      cursor: pointer;
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+    }
+
+    .category {
+      padding: 10px 20px;
+      margin: 5px;
+      border: 1px solid #333;
       cursor: pointer;
     }
 
-    #category-selector {
+    .category.active {
+      background-color: #333;
+      color: white;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+    }
+
+    #poll {
       margin-top: 2rem;
-      display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
-    }
-
-    #category-selector button {
-      background: #3b53db; border: none; color: #fff;
-      padding: 1rem 2rem; border-radius: 6px; cursor: pointer;
-      font-size: 1rem; transition: transform 0.2s ease;
-    }
-
-    #category-selector button:hover {
-      transform: scale(1.05);
-    }
-
-    #poll-container {
-      margin-top: 2rem; max-width: 600px; width: 90%;
-      display: none; flex-direction: column; gap: 1rem;
-    }
-
-    .poll-question {
-      font-size: 1.5rem; font-weight: bold; text-align: center;
-    }
-
-    .poll-option {
-      background: #333; padding: 1rem; border-radius: 6px;
-      cursor: pointer; text-align: center;
-      transition: background 0.3s, transform 0.2s;
-    }
-
-    .poll-option:hover {
-      background: #444; transform: scale(1.02);
-    }
-
-    #next-btn {
-      margin: 1rem auto; padding: 0.75rem 1.5rem;
-      background: #3b53db; color: #fff; border: none;
-      border-radius: 6px; cursor: pointer; display: none;
-    }
-
-    .ad-slot {
-      margin-top: 2rem; width: 100%;
-      background: #111; color: #fff; text-align: center;
-      padding: 1rem; border: 2px dashed #555; border-radius: 6px;
-    }
-
-    footer {
-      margin-top: auto; background: #111; width: 100%;
-      text-align: center; padding: 1rem; font-size: 0.8rem;
-    }
-
-    footer a {
-      color: #fff; text-decoration: underline;
     }
   </style>
 </head>
-
 <body>
-  <!-- Header -->
+  <!-- Home link -->
   <header onclick="goHome()">WOULDYOU.IO</header>
 
-  <!-- Landing page: category selector -->
-  <div id="category-selector">
-    <button onclick="selectCategory('Anime')">Anime</button>
-    <button onclick="selectCategory('Games')">Games</button>
-    <button onclick="selectCategory('Politics')">Politics</button>
-    <button onclick="selectCategory('Entertainment')">Entertainment</button>
-    <button onclick="selectCategory('Funny')">Funny</button>
+  <!-- Category buttons -->
+  <div id="categories">
+    <button class="category" data-category="Anime">Anime</button>
+    <button class="category" data-category="Games">Games</button>
+    <button class="category" data-category="Politics">Politics</button>
+    <button class="category" data-category="Entertainment">Entertainment</button>
+    <button class="category" data-category="Funny">Funny</button>
   </div>
 
   <!-- Poll container -->
-  <div id="poll-container">
-    <!-- Question + options injected here by main.js -->
-  </div>
+  <div id="poll"></div>
 
-  <!-- Next poll button -->
-  <button id="next-btn">Next Poll</button>
+  <!-- AdSense slot example (optional) -->
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-5747384081350738"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 
-  <!-- Ad Slot -->
-  <div class="ad-slot">
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-5747384081350738"
-      data-ad-slot="4958435717"
-      data-ad-format="auto"
-      data-full-width-responsive="true"></ins>
-  </div>
-
-  <footer>
-    © 2025 WOULDYOU.IO — All rights reserved |
-    <a href="javascript:googlefc.callbackQueue.push(googlefc.showRevocationMessage)">
-      Privacy & Cookies
-    </a>
-  </footer>
-
-  <!-- Main script -->
-  <script type="module" src="./main.js"></script>
+  <!-- Socket.IO logic -->
+  <script type="module" src="/main.js"></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 // === main.js ===
 
+// Import Socket.IO ESM client
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 // === Socket.IO connection ===
@@ -7,12 +8,13 @@ const socket = io("https://v-r-backend.onrender.com");
 
 let activePollId = null;
 
-// === Handle category click ===
+// === Handle category clicks ===
 document.querySelectorAll(".category").forEach(btn => {
   btn.addEventListener("click", () => {
     const category = btn.dataset.category;
     console.log("🔄 Loading poll for category:", category);
-    // Vis hvilken der er valgt
+
+    // Vis hvilken knap der er aktiv
     document.querySelectorAll(".category").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
@@ -29,7 +31,7 @@ socket.on("poll-data", (poll) => {
 
   console.log("📥 Received poll-data:", poll);
 
-  // ✅ Always store pollId as string
+  // ✅ Store pollId as plain string
   activePollId = poll._id;
   console.log("✅ activePollId:", activePollId, "| typeof:", typeof activePollId);
 
@@ -93,10 +95,20 @@ function renderPollResult(poll) {
     console.log("🔄 Loading next poll for category:", category);
     socket.emit("get-random-poll", { category });
   });
+
+  // Optional: Refresh Google Ads if you have inline slots
+  if (window.adsbygoogle) {
+    try {
+      (adsbygoogle = window.adsbygoogle || []).push({});
+      console.log("✅ AdSense slot refreshed");
+    } catch (e) {
+      console.warn("⚠️ AdSense push failed:", e);
+    }
+  }
 }
 
 // === Home redirect handler ===
-// This matches: <header onclick="goHome()">WOULDYOU.IO</header>
+// Matches: <header onclick="goHome()">WOULDYOU.IO</header>
 function goHome() {
   console.log("🏠 Returning to home page");
   window.location.href = "/";
