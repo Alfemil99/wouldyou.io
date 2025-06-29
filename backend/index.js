@@ -16,15 +16,23 @@ let pollsCollection;
 
 async function connectDB() {
   try {
+    console.log("🌐 Connecting to:", uri);
+
     await client.connect();
+
     const db = client.db("would-you-rather");
+    console.log("✅ Connected DB:", db.databaseName);
+
     pollsCollection = db.collection("polls");
-    console.log("✅ Connected to MongoDB");
+
+    const test = await pollsCollection.findOne({});
+    console.log("🔍 Test findOne in polls:", test);
+
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
   }
 }
-connectDB();
+
 
 // === Express app ===
 const app = express();
