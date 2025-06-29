@@ -187,8 +187,8 @@ function showAdPopup() {
   popup.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
   popup.style.zIndex = "9999";
 
-  // Din annoncekode uden <script> tags
   popup.innerHTML = `
+    <h3>Advertisement 🤑</h3>
     <ins class="adsbygoogle"
         style="display:block"
         data-ad-client="ca-pub-5747384081350738"
@@ -200,13 +200,16 @@ function showAdPopup() {
 
   document.body.appendChild(popup);
 
-  // Kør push EFTER du har tilføjet elementet til DOM'en
-  (adsbygoogle = window.adsbygoogle || []).push({});
+  // TRIGGER: push annoncen efter DOM-indsættelse
+  if (window.adsbygoogle && Array.isArray(window.adsbygoogle)) {
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  }
 
   document.getElementById("closeAd").onclick = () => {
     popup.remove();
   };
 }
+
 
 
 function startTapHintTimer() {
