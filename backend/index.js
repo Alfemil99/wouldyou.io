@@ -1,132 +1,95 @@
-// backend/index.js
+// index.js (backend)
 
-import express from "express";
-import http from "http";
-import cors from "cors";
-import { Server } from "socket.io";
-import { MongoClient, ObjectId } from "mongodb";
-import dotenv from "dotenv";
-dotenv.config();
+require("dotenv").config();
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
+const { MongoClient, ObjectId } = require("mongodb");
 
+// === MongoDB setup ===
+const uri = process.env.MONGODB_URI || "your_mongodb_connection_string";
+const client = new MongoClient(uri);
+let pollsCollection;
+
+async function connectDB() {
+  try {
+    await client.connect();
+    const db = client.db("would-you-rather");
+    pollsCollection = db.collection("polls");
+    console.log("✅ Connected to MongoDB");
+  } catch (err) {
+    console.error("❌ MongoDB connection failed:", err);
+  }
+}
+connectDB();
+
+// === Express app ===
 const app = express();
-const server = http.createServer(app);
-
 app.use(express.json());
 
-// ✅ CORS til Vercel-domæner
-const corsOptions = {
-  origin: [
-    "https://wouldyou.io",
-    "https://v-r-eight.vercel.app",
-    "https://v-r-alfemil99s-projects.vercel.app"
-  ],
-  methods: ["GET", "POST"],
+// === CORS ===
+const allowedOrigins = [
+  "https://www.wouldyou.io",
+  "http://localhost:3000" // for local dev
+];
+app.use(cors({
+  origin: allowedOrigins,
   credentials: true
-};
-app.use(cors(corsOptions));
+}));
 
+// === HTTP Server ===
+const server = http.createServer(app);
+
+// === Socket.io setup ===
 const io = new Server(server, {
-  cors: corsOptions
-});
-
-// ✅ MongoDB setup
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
-
-let db, polls;
-
-client.connect()
-  .then(() => {
-    db = client.db("would-you-rather");
-    polls = db.collection("polls");
-    console.log("✅ MongoDB connected");
-  })
-  .catch(err => {
-    console.error("❌ MongoDB connection failed:", err);
-  });
-
-// ✅ Test route
-app.get("/", (req, res) => {
-  res.send("✅ WOULDYOU.IO backend is running!");
-});
-
-// ✅ Submit new poll (create modal)
-app.post("/submit-poll", async (req, res) => {
-  const { question_text, options } = req.body;
-
-  if (!question_text || !options || options.length < 2) {
-    return res.status(400).send("Invalid poll data.");
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
   }
-
-  await polls.insertOne({
-    question_text,
-    options: options.map(opt => ({
-      text: opt.text,
-      votes: 0
-    })),
-    category: "User", // eller fx fra form
-    approved: false,
-    created_at: new Date()
-  });
-
-  res.send("Thanks! We'll review your poll.");
 });
 
-// ✅ Socket.io logic
+// === Socket.io logic ===
 io.on("connection", (socket) => {
-  console.log("🔗 New socket connected:", socket.id);
+  console.log(`✅ Client connected: ${socket.id}`);
 
-  // 🎲 Get multiple random polls
-  socket.on("get-random-polls", async () => {
+  // Send a random poll when a client connects
+  socket.on("getPoll", async () => {
     try {
-      const howMany = Math.floor(Math.random() * 4) + 2; // 2–5 polls
-      const count = await polls.countDocuments({ approved: true });
-
-      const randomIndex = Math.max(0, Math.floor(Math.random() * (count - howMany)));
-      const randomPolls = await polls.find({ approved: true })
-        .skip(randomIndex)
-        .limit(howMany)
-        .toArray();
-
-      console.log("🎲 Sending polls:", randomPolls.length);
-      socket.emit("polls-data", randomPolls);
+      const polls = await pollsCollection.aggregate([{ $sample: { size: 1 } }]).toArray();
+      socket.emit("pollData", polls[0]);
     } catch (err) {
-      console.error("❌ get-random-polls error:", err);
-      socket.emit("polls-data", []);
+      console.error("❌ Failed to fetch poll:", err);
     }
   });
 
-  // ✅ Vote on an option
+  // Handle vote
   socket.on("vote", async ({ pollId, optionIndex }) => {
     try {
-      if (!pollId || optionIndex === undefined) {
-        console.warn("⚠️ Invalid vote payload:", pollId, optionIndex);
-        return;
-      }
-
-      const result = await polls.updateOne(
+      const result = await pollsCollection.findOneAndUpdate(
         { _id: new ObjectId(pollId) },
-        { $inc: { [`options.${optionIndex}.votes`]: 1 } }
+        { $inc: { [`votes.${optionIndex}`]: 1 } },
+        { returnDocument: "after" }
       );
-
-      console.log(`✅ Vote saved for Poll: ${pollId} Option: ${optionIndex}`);
-
-      const updatedPoll = await polls.findOne({ _id: new ObjectId(pollId) });
-
-      socket.emit("vote-result", updatedPoll);
-
+      io.emit("pollData", result.value); // broadcast updated poll
     } catch (err) {
-      console.error("❌ vote error:", err);
-      socket.emit("vote-result", { error: "Vote failed" });
+      console.error("❌ Failed to update vote:", err);
     }
   });
 
   socket.on("disconnect", () => {
-    console.log("🔌 Socket disconnected:", socket.id);
+    console.log(`❌ Client disconnected: ${socket.id}`);
   });
 });
 
-// ✅ Start server
-server.listen(3001, () => {
-  console.log("🚀 WOULDYOU.IO backend running on port 3001");
+// === Example REST route ===
+app.get("/", (req, res) => {
+  res.send("✅ WouldYou.IO backend is running!");
+});
+
+// === Start server ===
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`🚀 Server listening on port ${PORT}`);
 });
