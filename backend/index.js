@@ -92,25 +92,32 @@ io.on("connection", (socket) => {
       const objId = new ObjectId(pollId);
       console.log("Converted ObjectId:", objId);
 
+      const found = await pollsCollection.findOne({ _id: objId });
+      console.log("Test findOne:", found);
+
       const result = await pollsCollection.findOneAndUpdate(
         { _id: objId },
         { $inc: { [`options.${optionIndex}.votes`]: 1 } },
         { returnDocument: "after" }
       );
 
+      console.log("findOneAndUpdate result:", result);
+
       if (!result.value) {
-        console.warn("⚠️ No poll found for that ID — check if pollId is correct and matches your DB");
+        console.warn("⚠️ No poll found for that ID");
         socket.emit("vote-result", { error: "Poll not found" });
         return;
       }
 
-      console.log(`✅ Vote recorded for poll ${pollId}, option ${optionIndex}`);
+      console.log(`✅ Vote recorded for poll ${pollId}`);
       socket.emit("vote-result", result.value);
+
     } catch (err) {
       console.error("❌ Failed to record vote:", err);
       socket.emit("vote-result", { error: "Vote failed" });
     }
   });
+
 
   socket.on("disconnect", () => {
     console.log(`❌ Client disconnected: ${socket.id}`);
