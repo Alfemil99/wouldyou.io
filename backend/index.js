@@ -89,24 +89,26 @@ io.on("connection", (socket) => {
 
   // === Handle vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
-    if (!pollsCollection) {
-      console.error("❌ pollsCollection not initialized");
-      return;
-    }
-
     console.log("🗳️ === Incoming vote ===");
     console.log("pollId raw:", pollId, "| typeof:", typeof pollId);
 
-    const query = { _id: pollId }; // ✅ Only string!
+    if (!pollsCollection) {
+      console.error("❌ pollsCollection not initialized");
+      socket.emit("vote-result", { error: "Server error" });
+      return;
+    }
 
-    const check = await pollsCollection.findOne(query);
-    console.log("findOne result:", check);
+    // Test findOne direkte
+    const test = await pollsCollection.findOne({ _id: pollId });
+    console.log("🔍 Direct findOne test:", test);
 
     const result = await pollsCollection.findOneAndUpdate(
-      query,
+      { _id: pollId },
       { $inc: { [`options.${optionIndex}.votes`]: 1 } },
       { returnDocument: "after" }
     );
+
+    console.log("🔄 findOneAndUpdate result:", result);
 
     if (!result.value) {
       console.warn("⚠️ No poll found for that ID");
@@ -114,12 +116,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    console.log(`✅ Vote registered for poll: ${pollId}`);
     io.emit("vote-result", result.value);
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`❌ Client disconnected: ${socket.id}`);
   });
 });
 
