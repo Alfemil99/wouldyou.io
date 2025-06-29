@@ -17,133 +17,114 @@
 
   <style>
     html, body {
-      margin: 0; padding: 0; height: 100%; overflow-x: hidden;
-      background: #222;
+      margin: 0; padding: 0; height: 100%;
+      background: #222; color: #fff;
       font-family: "Outfit", sans-serif;
+      display: flex; flex-direction: column; align-items: center;
       user-select: none;
     }
 
-    *, *::before, *::after { box-sizing: border-box; }
-
     header {
-      background: #222; color: white; text-align: center;
-      padding: 1rem; font-weight: bold;
-      font-size: clamp(1rem, 4vw, 1.8rem);
+      width: 100%; text-align: center;
+      background: #111; padding: 1rem; font-weight: bold;
+      font-size: clamp(1rem, 4vw, 2rem);
     }
 
-    #mute-toggle, #create-btn {
-      margin: 0 0.5rem; cursor: pointer;
+    #category-selector {
+      margin-top: 2rem;
+      display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
+    }
+
+    #category-selector button {
+      background: #3b53db; border: none; color: #fff;
+      padding: 1rem 2rem; border-radius: 6px; cursor: pointer;
+      font-size: 1rem; transition: transform 0.2s ease;
+    }
+
+    #category-selector button:hover {
+      transform: scale(1.05);
     }
 
     #poll-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
-    }
-
-    .poll-card {
-      background: #333; color: white;
-      border-radius: 8px; padding: 1rem;
-      display: flex; flex-direction: column;
-      gap: 0.5rem; cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .poll-card:hover {
-      transform: scale(1.02);
-    }
-
-    .poll-option {
-      background: #444; padding: 0.5rem; border-radius: 4px;
-      cursor: pointer; transition: background 0.3s;
-    }
-
-    .poll-option:hover {
-      background: #555;
+      margin-top: 2rem; max-width: 600px; width: 90%;
+      display: none; flex-direction: column; gap: 1rem;
     }
 
     .poll-question {
-      font-weight: bold;
-      margin-bottom: 0.5rem;
+      font-size: 1.5rem; font-weight: bold; text-align: center;
+    }
+
+    .poll-option {
+      background: #333; padding: 1rem; border-radius: 6px;
+      cursor: pointer; text-align: center;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .poll-option:hover {
+      background: #444; transform: scale(1.02);
+    }
+
+    #next-btn {
+      margin: 1rem auto; padding: 0.75rem 1.5rem;
+      background: #3b53db; color: #fff; border: none;
+      border-radius: 6px; cursor: pointer; display: none;
     }
 
     .ad-slot {
-      background: #111; color: #fff;
-      border: 2px dashed #555; padding: 1rem;
-      text-align: center; border-radius: 8px;
+      margin-top: 2rem; width: 100%;
+      background: #111; color: #fff; text-align: center;
+      padding: 1rem; border: 2px dashed #555; border-radius: 6px;
     }
 
     footer {
-      background: #222; color: white; text-align: center;
-      padding: 1rem; font-size: 0.8rem;
+      margin-top: auto; background: #111; width: 100%;
+      text-align: center; padding: 1rem; font-size: 0.8rem;
     }
 
-    #create-modal {
-      display: none;
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff; color: #000;
-      padding: 2rem; border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      z-index: 9999; max-width: 90%; width: 400px;
-      text-align: center;
-    }
-
-    #create-modal input {
-      width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;
-    }
-
-    #create-modal button.submit-btn {
-      background: #3b53db; color: #fff; border: none;
-      padding: 10px 20px; border-radius: 4px; cursor: pointer;
-    }
-
-    #create-modal .close-btn {
-      position: absolute; top: 10px; right: 15px;
-      color: #e74c3c; font-size: 1.5rem; cursor: pointer;
+    footer a {
+      color: #fff; text-decoration: underline;
     }
   </style>
 </head>
 
 <body>
-  <!-- Header -->
-  <header>
-    <span id="create-btn">📝</span> WOULDYOU.IO <span id="mute-toggle">🔊</span>
-  </header>
+  <header>WOULDYOU.IO</header>
 
-  <!-- Poll Grid -->
-  <div id="poll-container">
-    <!-- Dynamic polls will be injected here by main.js -->
+  <!-- Category selector -->
+  <div id="category-selector">
+    <button onclick="selectCategory('Anime')">Anime</button>
+    <button onclick="selectCategory('Games')">Games</button>
+    <button onclick="selectCategory('Politics')">Politics</button>
+    <button onclick="selectCategory('Entertainment')">Entertainment</button>
+    <button onclick="selectCategory('Funny')">Funny</button>
   </div>
 
-  <!-- Footer -->
+  <!-- Poll container -->
+  <div id="poll-container">
+    <!-- Question + options injected here -->
+  </div>
+
+  <!-- Next poll button -->
+  <button id="next-btn">Next Poll</button>
+
+  <!-- Ad Slot -->
+  <div class="ad-slot">
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-5747384081350738"
+      data-ad-slot="4958435717"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  </div>
+
   <footer>
-    © 2025 WOULDYOU.IO — All rights reserved
-    | <a href="javascript:googlefc.callbackQueue.push(googlefc.showRevocationMessage)">Privacy & Cookies</a>
+    © 2025 WOULDYOU.IO — All rights reserved |
+    <a href="javascript:googlefc.callbackQueue.push(googlefc.showRevocationMessage)">
+      Privacy & Cookies
+    </a>
   </footer>
 
-  <!-- Create Would You Rather Modal -->
-  <div id="create-modal">
-    <span class="close-btn" id="closeModal">❌</span>
-    <h3>📝 Add Your Own Poll</h3>
-    <input type="text" id="questionText" placeholder="Your question...">
-    <input type="text" id="option1" placeholder="Option 1">
-    <input type="text" id="option2" placeholder="Option 2">
-    <!-- Add more input fields dynamically with JS if you want up to 5 -->
-    <button class="submit-btn" id="submitPoll">Submit</button>
-    <div id="create-status"></div>
-  </div>
-
-  <!-- Sounds (optional) -->
-  <audio id="cheer-sound" preload="auto">
-    <source src="./sounds/cheer.mp3" type="audio/mpeg" />
-  </audio>
-  <audio id="fart-sound" preload="auto">
-    <source src="./sounds/fart_echo.mp3" type="audio/mpeg" />
-  </audio>
-
-  <!-- Main Script -->
+  <!-- Main script -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>

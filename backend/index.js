@@ -1,4 +1,4 @@
-// index.js (backend) — ES Module version
+// === index.js — Backend ===
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -33,7 +33,7 @@ app.use(express.json());
 // === CORS ===
 const allowedOrigins = [
   "https://www.wouldyou.io",
-  "http://localhost:3000" // for local dev
+  "http://localhost:3000"
 ];
 app.use(cors({
   origin: allowedOrigins,
@@ -43,7 +43,7 @@ app.use(cors({
 // === HTTP Server ===
 const server = http.createServer(app);
 
-// === Socket.io setup ===
+// === Socket.IO setup ===
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -52,30 +52,36 @@ const io = new Server(server, {
   }
 });
 
-// === Socket.io logic ===
+// === Socket.IO logic ===
 io.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
 
-  // 🎲 Send multiple random polls
-  socket.on("get-random-polls", async () => {
+  // === Get a single random poll in category ===
+  socket.on("get-random-poll", async ({ category }) => {
     try {
-      const howMany = Math.floor(Math.random() * 4) + 2; // 2–5 polls
-      const count = await pollsCollection.countDocuments({ approved: true });
-      const randomIndex = Math.max(0, Math.floor(Math.random() * (count - howMany)));
-      const randomPolls = await pollsCollection.find({ approved: true })
-        .skip(randomIndex)
-        .limit(howMany)
-        .toArray();
+      const query = { approved: true, category };
+      const count = await pollsCollection.countDocuments(query);
 
-      console.log(`🎲 Sending ${randomPolls.length} polls`);
-      socket.emit("polls-data", randomPolls);
+      if (count === 0) {
+        socket.emit("poll-data", null);
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * count);
+      const randomPoll = await pollsCollection.find(query)
+        .skip(randomIndex)
+        .limit(1)
+        .next();
+
+      console.log(`🎲 Sent poll in category: ${category}`);
+      socket.emit("poll-data", randomPoll);
     } catch (err) {
-      console.error("❌ Failed to fetch polls:", err);
-      socket.emit("polls-data", []);
+      console.error("❌ Failed to fetch random poll:", err);
+      socket.emit("poll-data", null);
     }
   });
 
-  // ✅ Handle vote
+  // === Handle vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
     try {
       const result = await pollsCollection.findOneAndUpdate(
@@ -84,10 +90,10 @@ io.on("connection", (socket) => {
         { returnDocument: "after" }
       );
 
-      console.log(`✅ Vote saved for Poll: ${pollId} Option: ${optionIndex}`);
+      console.log(`✅ Vote recorded for poll ${pollId} option ${optionIndex}`);
       socket.emit("vote-result", result.value);
     } catch (err) {
-      console.error("❌ Failed to update vote:", err);
+      console.error("❌ Failed to record vote:", err);
       socket.emit("vote-result", { error: "Vote failed" });
     }
   });
@@ -97,7 +103,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// === Example REST route ===
+// === REST route (optional) ===
 app.get("/", (req, res) => {
   res.send("✅ WouldYou.IO backend is running!");
 });
