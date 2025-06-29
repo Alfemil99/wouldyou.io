@@ -189,15 +189,18 @@ function showAdPopup() {
 
   // Tilføj din manuelle AdSense-annoncekode her
   popup.innerHTML = `
-    <h3>Advertisement 🤑</h3>
-    <p>Thanks for playing!</p>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5747384081350738"
+        crossorigin="anonymous"></script>
+    <!-- PopupAd -->
     <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-5747384081350738"
-         data-ad-slot="4958435717"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <button id="closeAd">Continue</button>
+        style="display:block"
+        data-ad-client="ca-pub-5747384081350738"
+        data-ad-slot="4958435717"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
   `;
 
   document.body.appendChild(popup);
