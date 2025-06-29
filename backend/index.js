@@ -17,7 +17,6 @@ let pollsCollection;
 async function connectDB() {
   try {
     console.log("🌐 Connecting to:", uri);
-
     await client.connect();
 
     const db = client.db("would-you-rather");
@@ -33,12 +32,11 @@ async function connectDB() {
   }
 }
 
-
 // === Express app ===
 const app = express();
 app.use(express.json());
 
-// === CORS ===
+// === CORS setup ===
 const allowedOrigins = [
   "https://www.wouldyou.io",
   "http://localhost:3000"
@@ -61,84 +59,89 @@ const io = new Server(server, {
 });
 
 // === Socket.IO logic ===
-io.on("connection", (socket) => {
-  console.log(`✅ Client connected: ${socket.id}`);
+// Important: only start socket when DB is ready!
+async function startServer() {
+  await connectDB();
 
-  // === Get a single random poll in category ===
-  socket.on("get-random-poll", async ({ category }) => {
-    try {
-      const query = { approved: true, category };
-      const count = await pollsCollection.countDocuments(query);
+  io.on("connection", (socket) => {
+    console.log(`✅ Client connected: ${socket.id}`);
 
-      if (count === 0) {
-        console.log(`⚠️ No polls in category: ${category}`);
+    // === Get a single random poll ===
+    socket.on("get-random-poll", async ({ category }) => {
+      try {
+        const query = { approved: true, category };
+        const count = await pollsCollection.countDocuments(query);
+
+        if (count === 0) {
+          console.log(`⚠️ No polls in category: ${category}`);
+          socket.emit("poll-data", null);
+          return;
+        }
+
+        const randomIndex = Math.floor(Math.random() * count);
+        const randomPoll = await pollsCollection.find(query)
+          .skip(randomIndex)
+          .limit(1)
+          .next();
+
+        console.log(`🎲 Sent poll in category: ${category}`);
+        socket.emit("poll-data", randomPoll);
+
+      } catch (err) {
+        console.error("❌ Failed to fetch random poll:", err);
         socket.emit("poll-data", null);
-        return;
       }
+    });
 
-      const randomIndex = Math.floor(Math.random() * count);
-      const randomPoll = await pollsCollection.find(query)
-        .skip(randomIndex)
-        .limit(1)
-        .next();
+    // === Handle vote ===
+    socket.on("vote", async ({ pollId, optionIndex }) => {
+      console.log("🗳️ === Incoming vote ===");
+      console.log("pollId raw:", pollId);
+      console.log("typeof pollId:", typeof pollId);
 
-      console.log(`🎲 Sent poll in category: ${category}`);
-      socket.emit("poll-data", randomPoll);
-    } catch (err) {
-      console.error("❌ Failed to fetch random poll:", err);
-      socket.emit("poll-data", null);
-    }
-  });
+      try {
+        const objId = new ObjectId(pollId);
+        console.log("Converted ObjectId:", objId);
 
-  // === Handle vote ===
-  socket.on("vote", async ({ pollId, optionIndex }) => {
-    console.log("🗳️ === Incoming vote ===");
-    console.log("pollId raw:", pollId);
-    console.log("typeof pollId:", typeof pollId);
+        const found = await pollsCollection.findOne({ _id: objId });
+        console.log("Test findOne result:", found);
 
-    try {
-      const objId = new ObjectId(pollId);
-      console.log("Converted ObjectId:", objId);
+        const result = await pollsCollection.findOneAndUpdate(
+          { _id: objId },
+          { $inc: { [`options.${optionIndex}.votes`]: 1 } },
+          { returnDocument: "after" }
+        );
 
-      const found = await pollsCollection.findOne({ _id: objId });
-      console.log("Test findOne:", found);
+        if (!result.value) {
+          console.warn("⚠️ No poll found for that ID");
+          socket.emit("vote-result", { error: "Poll not found" });
+          return;
+        }
 
-      const result = await pollsCollection.findOneAndUpdate(
-        { _id: objId },
-        { $inc: { [`options.${optionIndex}.votes`]: 1 } },
-        { returnDocument: "after" }
-      );
+        console.log(`✅ Vote recorded for poll ${pollId}`);
+        socket.emit("vote-result", result.value);
 
-      console.log("findOneAndUpdate result:", result);
-
-      if (!result.value) {
-        console.warn("⚠️ No poll found for that ID");
-        socket.emit("vote-result", { error: "Poll not found" });
-        return;
+      } catch (err) {
+        console.error("❌ Failed to record vote:", err);
+        socket.emit("vote-result", { error: "Vote failed" });
       }
+    });
 
-      console.log(`✅ Vote recorded for poll ${pollId}`);
-      socket.emit("vote-result", result.value);
-
-    } catch (err) {
-      console.error("❌ Failed to record vote:", err);
-      socket.emit("vote-result", { error: "Vote failed" });
-    }
+    socket.on("disconnect", () => {
+      console.log(`❌ Client disconnected: ${socket.id}`);
+    });
   });
 
-
-  socket.on("disconnect", () => {
-    console.log(`❌ Client disconnected: ${socket.id}`);
+  // === Example REST route ===
+  app.get("/", (req, res) => {
+    res.send("✅ WouldYou.IO backend is running!");
   });
-});
 
-// === Example REST route ===
-app.get("/", (req, res) => {
-  res.send("✅ WouldYou.IO backend is running!");
-});
+  // === Start server ===
+  const PORT = process.env.PORT || 3001;
+  server.listen(PORT, () => {
+    console.log(`🚀 Server listening on port ${PORT}`);
+  });
+}
 
-// === Start server ===
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`🚀 Server listening on port ${PORT}`);
-});
+startServer();
