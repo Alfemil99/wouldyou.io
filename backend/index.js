@@ -1,11 +1,13 @@
-// index.js (backend)
+// index.js (backend) — ES Module version
 
-require("dotenv").config();
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const cors = require("cors");
-const { MongoClient, ObjectId } = require("mongodb");
+import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+import cors from "cors";
+import { MongoClient, ObjectId } from "mongodb";
 
 // === MongoDB setup ===
 const uri = process.env.MONGODB_URI || "your_mongodb_connection_string";
@@ -30,8 +32,8 @@ app.use(express.json());
 
 // === CORS ===
 const allowedOrigins = [
-  "wouldyou.io",
-  "localhost:3000" // for local dev
+  "https://www.wouldyou.io",
+  "http://localhost:3000" // for local dev
 ];
 app.use(cors({
   origin: allowedOrigins,
@@ -54,27 +56,39 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
 
-  // Send a random poll when a client connects
-  socket.on("getPoll", async () => {
+  // 🎲 Send multiple random polls
+  socket.on("get-random-polls", async () => {
     try {
-      const polls = await pollsCollection.aggregate([{ $sample: { size: 1 } }]).toArray();
-      socket.emit("pollData", polls[0]);
+      const howMany = Math.floor(Math.random() * 4) + 2; // 2–5 polls
+      const count = await pollsCollection.countDocuments({ approved: true });
+      const randomIndex = Math.max(0, Math.floor(Math.random() * (count - howMany)));
+      const randomPolls = await pollsCollection.find({ approved: true })
+        .skip(randomIndex)
+        .limit(howMany)
+        .toArray();
+
+      console.log(`🎲 Sending ${randomPolls.length} polls`);
+      socket.emit("polls-data", randomPolls);
     } catch (err) {
-      console.error("❌ Failed to fetch poll:", err);
+      console.error("❌ Failed to fetch polls:", err);
+      socket.emit("polls-data", []);
     }
   });
 
-  // Handle vote
+  // ✅ Handle vote
   socket.on("vote", async ({ pollId, optionIndex }) => {
     try {
       const result = await pollsCollection.findOneAndUpdate(
         { _id: new ObjectId(pollId) },
-        { $inc: { [`votes.${optionIndex}`]: 1 } },
+        { $inc: { [`options.${optionIndex}.votes`]: 1 } },
         { returnDocument: "after" }
       );
-      io.emit("pollData", result.value); // broadcast updated poll
+
+      console.log(`✅ Vote saved for Poll: ${pollId} Option: ${optionIndex}`);
+      socket.emit("vote-result", result.value);
     } catch (err) {
       console.error("❌ Failed to update vote:", err);
+      socket.emit("vote-result", { error: "Vote failed" });
     }
   });
 
