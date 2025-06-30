@@ -13,15 +13,18 @@ dotenv.config();
 const uri = process.env.MONGODB_URI || "YOUR_MONGODB_URI";
 const client = new MongoClient(uri);
 let pollsCollection;
+let pendingCollection;
 
 async function connectDB() {
   try {
     await client.connect();
     const db = client.db("would-you-rather");
     pollsCollection = db.collection("polls");
+    pendingCollection = db.collection("pending_polls");
 
     console.log("✅ Connected to DB:", db.databaseName);
     console.log("✅ pollsCollection:", pollsCollection.namespace);
+    console.log("✅ pendingCollection:", pendingCollection.namespace);
 
     const collections = await db.listCollections().toArray();
     console.log("📂 Collections:", collections.map(col => col.name));
@@ -60,96 +63,108 @@ io.on("connection", (socket) => {
 
   // === Get random poll ===
   socket.on("get-random-poll", async ({ category }) => {
-    console.log("🔍 get-random-poll:", category);
+    if (!pollsCollection) return;
 
-    if (!pollsCollection) {
-      console.error("❌ pollsCollection not initialized");
-      socket.emit("poll-data", null);
-      return;
-    }
+    const query = { approved: true };
+    if (category) query.category = category;
 
-    const count = await pollsCollection.countDocuments({ category, approved: true });
-    console.log("🔢 Matching polls:", count);
-
+    const count = await pollsCollection.countDocuments(query);
     if (count === 0) {
-      console.warn(`⚠️ No polls found in category: ${category}`);
+      console.warn(`⚠️ No polls found in: ${category || "any"}`);
       socket.emit("poll-data", null);
       return;
     }
 
     const polls = await pollsCollection.aggregate([
-      { $match: { category, approved: true } },
+      { $match: query },
       { $sample: { size: 1 } }
     ]).toArray();
 
     const poll = polls[0];
-    console.log("✅ Sending random poll:", poll?._id);
+    console.log("✅ Sending random poll:", poll._id);
     socket.emit("poll-data", poll);
   });
 
-  // === Get poll by ID (share) ===
+  // === Get poll by ID ===
   socket.on("get-poll-by-id", async ({ pollId }) => {
-    console.log(`🔗 get-poll-by-id: ${pollId}`);
-
-    if (!pollsCollection) {
-      console.error("❌ pollsCollection not initialized");
-      socket.emit("poll-data", null);
-      return;
-    }
-
-    const trimmedPollId = pollId.trim();
-    const poll = await pollsCollection.findOne({ _id: trimmedPollId });
-
+    if (!pollsCollection) return;
+    const trimmedId = pollId.trim();
+    const poll = await pollsCollection.findOne({ _id: trimmedId });
     if (!poll) {
-      console.warn(`⚠️ Poll not found for ID: ${trimmedPollId}`);
+      console.warn(`⚠️ Poll not found: ${pollId}`);
       socket.emit("poll-data", null);
     } else {
-      console.log("✅ Sending poll by ID:", poll._id);
       socket.emit("poll-data", poll);
     }
   });
 
+  // === Get trending polls ===
+  socket.on("get-trending-polls", async () => {
+    if (!pollsCollection) return;
+
+    const trending = await pollsCollection.aggregate([
+      { $match: { approved: true } },
+      { $addFields: { totalVotes: { $sum: "$options.votes" } } },
+      { $sort: { totalVotes: -1, created_at: -1 } },
+      { $limit: 5 }
+    ]).toArray();
+
+    console.log(`🔥 Sending trending polls: ${trending.length}`);
+    socket.emit("trending-polls", trending);
+  });
+
+  // === Get random poll preview ===
+  socket.on("get-random-poll-preview", async () => {
+    if (!pollsCollection) return;
+
+    const polls = await pollsCollection.aggregate([
+      { $match: { approved: true } },
+      { $sample: { size: 1 } }
+    ]).toArray();
+
+    const poll = polls[0] || null;
+    console.log("🎲 Sending random preview:", poll?._id);
+    socket.emit("random-poll-preview", poll);
+  });
+
+  // === Submit poll ===
+  socket.on("submit-poll", async (pollData) => {
+    if (!pendingCollection) return;
+
+    const newPoll = {
+      category: pollData.category,
+      question_text: pollData.question_text,
+      options: pollData.options.map(text => ({ text, votes: 0 })),
+      approved: false,
+      created_at: new Date()
+    };
+
+    const result = await pendingCollection.insertOne(newPoll);
+    console.log(`✅ Poll submitted for review: ${result.insertedId}`);
+  });
+
   // === Vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
-    console.log("🗳️ Incoming vote:", pollId, optionIndex);
-
-    if (!pollsCollection) {
-      console.error("❌ pollsCollection not initialized");
-      socket.emit("vote-result", { error: "pollsCollection not initialized" });
-      return;
-    }
+    if (!pollsCollection) return;
 
     const trimmedPollId = pollId.trim();
-    const query = { _id: trimmedPollId };
-
-    const poll = await pollsCollection.findOne(query);
+    const poll = await pollsCollection.findOne({ _id: trimmedPollId });
     if (!poll) {
-      console.warn("⚠️ Poll not found");
       socket.emit("vote-result", { error: "Poll not found" });
       return;
     }
 
     if (optionIndex < 0 || optionIndex >= poll.options.length) {
-      console.warn("⚠️ Invalid optionIndex");
       socket.emit("vote-result", { error: "Invalid optionIndex" });
       return;
     }
 
-    const updateResult = await pollsCollection.updateOne(
-      query,
+    await pollsCollection.updateOne(
+      { _id: trimmedPollId },
       { $inc: { [`options.${optionIndex}.votes`]: 1 } }
     );
-    console.log("✅ Votes updated:", updateResult.modifiedCount);
 
-    const updatedPoll = await pollsCollection.findOne(query);
-    console.log("✅ Updated poll:", updatedPoll?._id);
-
-    if (!updatedPoll) {
-      socket.emit("vote-result", { error: "Could not fetch updated poll" });
-      return;
-    }
-
-    // ✅ INDIVIDUAL SESSION: send kun til denne socket!
+    const updatedPoll = await pollsCollection.findOne({ _id: trimmedPollId });
     socket.emit("vote-result", updatedPoll);
   });
 
@@ -163,7 +178,7 @@ app.get("/", (req, res) => {
   res.send("✅ WouldYou.IO backend running!");
 });
 
-// === Start server ===
+// === Start ===
 async function startServer() {
   await connectDB();
   const PORT = process.env.PORT || 10000;
