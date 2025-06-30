@@ -10,15 +10,14 @@ let activePollId = null;
 
 // === Go back to landing page ===
 window.goHome = function() {
-  // Vis kategori-grid igen
   document.getElementById("categories").style.display = "grid";
   document.getElementById("poll").style.display = "none";
   document.getElementById("poll").innerHTML = "";
-
+  document.body.classList.remove('voted');
   activeCategory = null;
   activePollId = null;
 
-  console.log("🏠 Went back to home");
+  console.log("🏠 Back to home");
 };
 
 // === Select category & get random poll ===
@@ -27,11 +26,10 @@ window.selectCategory = function(category) {
 
   activeCategory = category;
 
-  // Skjul kategori-grid, vis poll
+  // Toggle views
   document.getElementById("categories").style.display = "none";
-  document.getElementById("poll").style.display = "block";
+  document.getElementById("poll").style.display = "flex";
 
-  // VIGTIGT: Send category som ren string inde i JSON!
   socket.emit("get-random-poll", { category: category });
 };
 
@@ -53,19 +51,16 @@ socket.on("poll-data", (poll) => {
   pollDiv.innerHTML = `
     <h2>${poll.question_text}</h2>
     ${poll.options.map((opt, idx) => `
-      <button class="option" onclick="vote(${idx})">${opt.text}</button>
-      <div class="result-bar"><div class="result-fill" id="fill-${idx}"></div></div>
-      <div class="result-text" id="text-${idx}"></div>
+      <button class="poll-option" id="option-${idx}" onclick="vote(${idx})">
+        <div class="progress-fill"></div>
+        <span>${opt.text}</span>
+      </button>
     `).join("")}
     <button onclick="nextPoll()">Next</button>
-    <br><button onclick="goHome()">Back to Categories</button>
+    <button onclick="goHome()">Back</button>
   `;
 
-  // Reset result bars
-  poll.options.forEach((_, idx) => {
-    document.getElementById(`fill-${idx}`).style.width = "0%";
-    document.getElementById(`text-${idx}`).innerText = "";
-  });
+  document.body.classList.remove('voted');
 });
 
 // === Vote ===
@@ -88,14 +83,22 @@ socket.on("vote-result", (result) => {
 
   result.options.forEach((opt, idx) => {
     const percent = totalVotes ? Math.round((opt.votes / totalVotes) * 100) : 0;
-    document.getElementById(`fill-${idx}`).style.width = percent + "%";
-    document.getElementById(`text-${idx}`).innerText = `${opt.text}: ${percent}% (${opt.votes} votes)`;
+
+    const fill = document.querySelector(`#option-${idx} .progress-fill`);
+    const label = document.querySelector(`#option-${idx} span`);
+
+    if (fill) fill.style.width = percent + "%";
+    if (label) label.innerText = `${opt.text}: ${percent}% (${opt.votes} votes)`;
   });
+
+  // Prevent hover effect on voted buttons
+  document.body.classList.add('voted');
 });
 
 // === Next Poll ===
 window.nextPoll = function() {
   if (!activeCategory) return;
   console.log(`🔄 Next poll for category: ${activeCategory}`);
+  document.body.classList.remove('voted');
   socket.emit("get-random-poll", { category: activeCategory });
 };
