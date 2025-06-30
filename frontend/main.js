@@ -10,10 +10,10 @@ let activePollId = null;
 
 // === Go back to landing page ===
 window.goHome = function() {
-  // Vis kategorier igen
+  // Vis kategori-grid igen
   document.getElementById("categories").style.display = "grid";
-  document.getElementById("poll").innerHTML = "";
   document.getElementById("poll").style.display = "none";
+  document.getElementById("poll").innerHTML = "";
 
   activeCategory = null;
   activePollId = null;
@@ -27,11 +27,12 @@ window.selectCategory = function(category) {
 
   activeCategory = category;
 
-  // Skjul kategorier, vis poll-container
+  // Skjul kategori-grid, vis poll
   document.getElementById("categories").style.display = "none";
   document.getElementById("poll").style.display = "block";
 
-  socket.emit("get-random-poll", { category });
+  // VIGTIGT: Send category som ren string inde i JSON!
+  socket.emit("get-random-poll", { category: category });
 };
 
 // === Receive poll ===
@@ -39,7 +40,10 @@ socket.on("poll-data", (poll) => {
   const pollDiv = document.getElementById("poll");
 
   if (!poll) {
-    pollDiv.innerHTML = "<p>No polls found for this category.</p><button onclick='goHome()'>Back</button>";
+    pollDiv.innerHTML = `
+      <p>No polls found for this category.</p>
+      <button onclick='goHome()'>Back</button>
+    `;
     return;
   }
 
@@ -92,5 +96,6 @@ socket.on("vote-result", (result) => {
 // === Next Poll ===
 window.nextPoll = function() {
   if (!activeCategory) return;
+  console.log(`🔄 Next poll for category: ${activeCategory}`);
   socket.emit("get-random-poll", { category: activeCategory });
 };

@@ -19,13 +19,14 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      background: #f9f9f9;
     }
 
     header {
       font-weight: 800;
       font-size: 2rem;
-      padding: 1rem;
       text-align: center;
+      padding: 1rem;
       cursor: pointer;
     }
 
@@ -73,7 +74,8 @@
     }
 
     #poll {
-      padding: 1rem;
+      display: none; /* Starter skjult */
+      padding: 2rem 1rem;
       text-align: center;
     }
 
@@ -134,28 +136,29 @@
 <body>
   <header onclick="goHome()">WOULDYOU.IO</header>
 
-  <!-- Category Grid -->
+  <!-- === Category Grid === -->
   <main id="categories">
-    <div class="category-card" style="--bg:url('anime.jpg')" onclick="selectCategory(this, 'Anime')">
+    <div class="category-card" style="--bg:url('anime.jpg')" onclick="selectCategory('Anime')">
       <span>Anime</span>
     </div>
-    <div class="category-card" style="--bg:url('games.jpg')" onclick="selectCategory(this, 'Games')">
+    <div class="category-card" style="--bg:url('games.jpg')" onclick="selectCategory('Games')">
       <span>Games</span>
     </div>
-    <div class="category-card" style="--bg:url('entertainment.jpg')" onclick="selectCategory(this, 'Entertainment')">
+    <div class="category-card" style="--bg:url('entertainment.jpg')" onclick="selectCategory('Entertainment')">
       <span>Entertainment</span>
     </div>
-    <div class="category-card" style="--bg:url('politics.jpg')" onclick="selectCategory(this, 'Politics')">
+    <div class="category-card" style="--bg:url('politics.jpg')" onclick="selectCategory('Politics')">
       <span>Politics</span>
     </div>
-    <div class="category-card" style="--bg:url('funny.jpg')" onclick="selectCategory(this, 'Funny')">
+    <div class="category-card" style="--bg:url('funny.jpg')" onclick="selectCategory('Funny')">
       <span>Funny</span>
     </div>
   </main>
 
-  <!-- Poll View -->
+  <!-- === Poll Area === -->
   <div id="poll"></div>
 
+  <!-- === Footer / Adsense === -->
   <footer>
     <ins class="adsbygoogle"
          style="display:block"
@@ -164,10 +167,13 @@
          data-ad-format="auto"
          data-full-width-responsive="true"></ins>
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    <p>&copy; 2025 WOULDYOU.IO</p>
   </footer>
 
+  <!-- === Socket.IO logic === -->
   <script type="module" src="main.js"></script>
 
+  <!-- CSS for dynamic card backgrounds -->
   <style>
     .category-card::before {
       background-image: var(--bg);
