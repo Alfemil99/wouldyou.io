@@ -99,37 +99,54 @@ io.on("connection", (socket) => {
     console.log("🗳️ === Incoming vote ===");
     console.log("pollId raw:", pollId, "| typeof:", typeof pollId);
 
-    console.log("✅ pollsCollection namespace:", pollsCollection.namespace);
-
-    // TEST: Kør direkte findOne
-    const test = await pollsCollection.findOne({ _id: pollId });
-    console.log("🔍 Direct findOne result:", test);
-
-    if (!test) {
-      console.warn("⚠️ Poll not found at findOne stage");
-      socket.emit("vote-result", { error: "Poll not found" });
+    if (!pollId || typeof pollId !== "string") {
+      console.warn("⚠️ Invalid pollId");
+      socket.emit("vote-result", { error: "Invalid pollId" });
       return;
     }
 
-    const result = await pollsCollection.findOneAndUpdate(
-      { _id: pollId },
-      { $inc: { [`options.${optionIndex}.votes`]: 1 } },
-      { returnDocument: "after" }
-    );
+    try {
+      // 👉 Tjek om _id skal være String eller ObjectId
+      // For string IDs:
+      const query = { _id: pollId };
 
-    console.log("🔄 findOneAndUpdate result:", result);
+      // === Find poll for at validere ===
+      const poll = await pollsCollection.findOne(query);
+      if (!poll) {
+        console.warn("⚠️ Poll not found");
+        socket.emit("vote-result", { error: "Poll not found" });
+        return;
+      }
 
-    if (!result.value) {
-      console.warn("⚠️ Poll not found at update stage");
-      socket.emit("vote-result", { error: "Poll not found" });
-      return;
+      // === Safety: Tjek optionIndex ===
+      if (optionIndex < 0 || optionIndex >= poll.options.length) {
+        console.warn("⚠️ Invalid optionIndex");
+        socket.emit("vote-result", { error: "Invalid optionIndex" });
+        return;
+      }
+
+      // === Opdater vote ===
+      const result = await pollsCollection.findOneAndUpdate(
+        query,
+        { $inc: { [`options.${optionIndex}.votes`]: 1 } },
+        { returnDocument: "after" }
+      );
+
+      console.log("🔄 findOneAndUpdate result:", result);
+
+      if (!result.value) {
+        console.warn("⚠️ Poll not found at update stage");
+        socket.emit("vote-result", { error: "Poll not found at update stage" });
+        return;
+      }
+
+      // === Send updated poll til ALLE klienter ===
+      io.emit("vote-result", result.value);
+
+    } catch (err) {
+      console.error("❌ Vote update failed:", err);
+      socket.emit("vote-result", { error: "Server error" });
     }
-
-    io.emit("vote-result", result.value);
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`❌ Client disconnected: ${socket.id}`);
   });
 });
 
