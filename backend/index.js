@@ -106,11 +106,9 @@ io.on("connection", (socket) => {
     }
 
     try {
-      // 👉 Tjek om _id skal være String eller ObjectId
-      // For string IDs:
-      const query = { _id: pollId };
+      const query = { _id: pollId }; // ✅ Brug IKKE new ObjectId()
 
-      // === Find poll for at validere ===
+      // Find poll to validate
       const poll = await pollsCollection.findOne(query);
       if (!poll) {
         console.warn("⚠️ Poll not found");
@@ -118,14 +116,12 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // === Safety: Tjek optionIndex ===
       if (optionIndex < 0 || optionIndex >= poll.options.length) {
         console.warn("⚠️ Invalid optionIndex");
         socket.emit("vote-result", { error: "Invalid optionIndex" });
         return;
       }
 
-      // === Opdater vote ===
       const result = await pollsCollection.findOneAndUpdate(
         query,
         { $inc: { [`options.${optionIndex}.votes`]: 1 } },
@@ -140,7 +136,6 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // === Send updated poll til ALLE klienter ===
       io.emit("vote-result", result.value);
 
     } catch (err) {
