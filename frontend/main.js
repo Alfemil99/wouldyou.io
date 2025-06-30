@@ -3,7 +3,7 @@
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 // ✅ Socket.IO connection
-const socket = io("https://v-r-backend.onrender.com"); // Din backend URL
+const socket = io("https://v-r-backend.onrender.com");
 
 let activeCategory = null;
 let activePollId = null;
@@ -12,13 +12,15 @@ let activePollId = null;
 window.addEventListener("DOMContentLoaded", () => {
   const path = window.location.pathname;
 
+  // Check for /poll/:id
   if (path.startsWith("/poll/")) {
     const pollId = path.split("/poll/")[1];
     console.log(`🔗 Opening specific poll by ID: ${pollId}`);
-    socket.emit("get-poll-by-id", { pollId });
-    document.getElementById("categories").style.display = "none";
-    document.getElementById("poll").style.display = "flex";
+    loadPollById(pollId);
   }
+
+  // Load trending on homepage
+  loadTrending();
 });
 
 // === Go Home ===
@@ -31,6 +33,7 @@ window.goHome = function() {
   activeCategory = null;
   activePollId = null;
   console.log("🏠 Back to home");
+  loadTrending();
 };
 
 // === Select category & get random poll ===
@@ -43,6 +46,26 @@ window.selectCategory = function(category) {
   document.getElementById("poll").style.display = "flex";
 
   socket.emit("get-random-poll", { category: category });
+};
+
+// === Load random poll from Random Poll CTA ===
+window.loadRandomPoll = function() {
+  console.log("🎲 Loading Random Poll of the Day");
+  activeCategory = null;
+
+  document.getElementById("categories").style.display = "none";
+  document.getElementById("poll").style.display = "flex";
+
+  socket.emit("get-random-poll", {}); // No category, just any poll
+};
+
+// === Load specific poll by ID (for share link or trending) ===
+window.loadPollById = function(pollId) {
+  console.log(`📌 Loading poll by ID: ${pollId}`);
+  document.getElementById("categories").style.display = "none";
+  document.getElementById("poll").style.display = "flex";
+
+  socket.emit("get-poll-by-id", { pollId });
 };
 
 // === Receive poll ===
@@ -86,7 +109,6 @@ socket.on("poll-data", (poll) => {
 window.vote = function(optionIndex) {
   if (!activePollId) return;
 
-  // ✅ SPAM-PROTECT: kun én stemme pr poll
   if (document.body.classList.contains('voted')) {
     console.log("⚠️ Already voted, ignoring click");
     return;
@@ -116,10 +138,8 @@ socket.on("vote-result", (result) => {
     if (label) label.innerText = `${opt.text}: ${percent}% (${opt.votes} votes)`;
   });
 
-  // ✅ Mark poll as voted, prevent spam
   document.body.classList.add('voted');
 
-  // ✅ Disable all buttons
   document.querySelectorAll('.poll-option').forEach(btn => {
     btn.disabled = true;
     btn.style.cursor = "default";
@@ -128,11 +148,14 @@ socket.on("vote-result", (result) => {
 
 // === Next Poll ===
 window.nextPoll = function() {
-  if (!activeCategory) return;
+  if (activeCategory) {
+    socket.emit("get-random-poll", { category: activeCategory });
+  } else {
+    socket.emit("get-random-poll", {});
+  }
 
   document.body.classList.remove('voted');
-  window.history.pushState(null, "", `/`); // Reset URL, then load new
-  socket.emit("get-random-poll", { category: activeCategory });
+  window.history.pushState(null, "", `/`);
 };
 
 // === Copy Share Link ===
@@ -144,3 +167,34 @@ window.copyLink = function() {
     console.error("Clipboard copy failed:", err);
   });
 };
+
+// === Load Trending Polls ===
+function loadTrending() {
+  console.log("🔥 Loading trending polls");
+  socket.emit("get-trending-polls");
+}
+
+// === Receive Trending Data ===
+socket.on("trending-polls", (polls) => {
+  console.log("📊 Trending polls:", polls);
+  const carousel = document.getElementById("trending-carousel");
+  carousel.innerHTML = ""; // Clear old
+
+  if (!polls || polls.length === 0) {
+    carousel.innerHTML = "<p>No trending polls yet.</p>";
+    return;
+  }
+
+  polls.forEach(poll => {
+    const card = document.createElement("div");
+    card.className = "trend-card";
+    card.onclick = () => loadPollById(poll._id);
+
+    // You could add a preview image per poll if you store one
+    card.innerHTML = `
+      <img src="images/sample.png" alt="Trending Poll">
+      <p>${poll.question_text}</p>
+    `;
+    carousel.appendChild(card);
+  });
+});
