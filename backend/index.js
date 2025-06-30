@@ -10,22 +10,21 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // === MongoDB setup ===
-const uri = process.env.MONGODB_URI || "your_mongodb_connection_string";
+const uri = process.env.MONGODB_URI || "YOUR_MONGODB_URI";
 const client = new MongoClient(uri);
 let pollsCollection;
 
 async function connectDB() {
   try {
     await client.connect();
-    const db = client.db("would-you-rather"); // 🎯 Sørg for dette matcher din cluster!
-    pollsCollection = db.collection("polls");  // 🎯 Vigtig! Må IKKE være 'questions' el.lign.
+    const db = client.db("would-you-rather");
+    pollsCollection = db.collection("polls");
 
     console.log("✅ Connected to DB:", db.databaseName);
     console.log("✅ pollsCollection namespace:", pollsCollection.namespace);
 
-    // BONUS: Vis ALLE collections i DB
     const collections = await db.listCollections().toArray();
-    console.log("📂 Collections in DB:", collections.map(col => col.name));
+    console.log("📂 Collections:", collections.map(col => col.name));
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
   }
@@ -37,19 +36,17 @@ app.use(express.json());
 
 const allowedOrigins = [
   "https://www.wouldyou.io",
-  "http://localhost:3000"
+  "http://localhost:3000",
+  "http://127.0.0.1:3000"
 ];
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true
-  })
-);
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
 // === HTTP & Socket.IO server ===
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -62,10 +59,41 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
 
-  // === Get random poll in category ===
+  // === Get random poll ===
+  socket.on("get-random-poll", async ({ category }) => {
+    console.log("🔍 get-random-poll:", category);
+
+    if (!pollsCollection) {
+      console.error("❌ pollsCollection not initialized");
+      socket.emit("poll-data", null);
+      return;
+    }
+
+    const count = await pollsCollection.countDocuments({ category, approved: true });
+    console.log("🔢 Matching polls:", count);
+
+    if (count === 0) {
+      console.warn(`⚠️ No polls found in category: ${category}`);
+      socket.emit("poll-data", null);
+      return;
+    }
+
+    const polls = await pollsCollection.aggregate([
+      { $match: { category, approved: true } },
+      { $sample: { size: 1 } }
+    ]).toArray();
+
+    const poll = polls[0];
+    console.log("✅ Sending poll:", poll?._id);
+    socket.emit("poll-data", poll);
+  });
+
+  // === Vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
     console.log("🗳️ === Incoming vote ===");
-    console.log("pollId raw:", pollId, "| typeof:", typeof pollId);
+    console.log("pollId:", pollId, "| typeof:", typeof pollId);
+    console.log("optionIndex:", optionIndex);
+    console.log("namespace:", pollsCollection?.namespace);
 
     if (!pollsCollection) {
       console.error("❌ pollsCollection not initialized");
@@ -91,7 +119,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Bruger updateOne
+    // Use updateOne + findOne to avoid findOneAndUpdate issues
     const updateResult = await pollsCollection.updateOne(
       query,
       { $inc: { [`options.${optionIndex}.votes`]: 1 } }
@@ -110,6 +138,9 @@ io.on("connection", (socket) => {
     io.emit("vote-result", updatedPoll);
   });
 
+  socket.on("disconnect", () => {
+    console.log(`❌ Client disconnected: ${socket.id}`);
+  });
 });
 
 // === Health check ===
