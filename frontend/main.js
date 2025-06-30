@@ -1,5 +1,8 @@
+// === main.js ===
+
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
+// ✅ Socket.IO connection
 const socket = io("https://v-r-backend.onrender.com"); // Din backend URL
 
 let activeCategory = null;
@@ -49,7 +52,7 @@ socket.on("poll-data", (poll) => {
   if (!poll) {
     pollDiv.innerHTML = `
       <p>No polls found.</p>
-      <button onclick='goHome()'>Back</button>
+      <button class="poll-button" onclick='goHome()'>Back</button>
     `;
     return;
   }
@@ -82,6 +85,13 @@ socket.on("poll-data", (poll) => {
 // === Vote ===
 window.vote = function(optionIndex) {
   if (!activePollId) return;
+
+  // ✅ SPAM-PROTECT: kun én stemme pr poll
+  if (document.body.classList.contains('voted')) {
+    console.log("⚠️ Already voted, ignoring click");
+    return;
+  }
+
   console.log(`🗳️ Voting: ${activePollId} | option ${optionIndex}`);
   socket.emit("vote", { pollId: activePollId, optionIndex });
 };
@@ -106,13 +116,22 @@ socket.on("vote-result", (result) => {
     if (label) label.innerText = `${opt.text}: ${percent}% (${opt.votes} votes)`;
   });
 
+  // ✅ Mark poll as voted, prevent spam
   document.body.classList.add('voted');
+
+  // ✅ Disable all buttons
+  document.querySelectorAll('.poll-option').forEach(btn => {
+    btn.disabled = true;
+    btn.style.cursor = "default";
+  });
 });
 
 // === Next Poll ===
 window.nextPoll = function() {
   if (!activeCategory) return;
+
   document.body.classList.remove('voted');
+  window.history.pushState(null, "", `/`); // Reset URL, then load new
   socket.emit("get-random-poll", { category: activeCategory });
 };
 
