@@ -63,86 +63,53 @@ io.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
 
   // === Get random poll in category ===
-  socket.on("get-random-poll", async ({ category }) => {
-    if (!pollsCollection) {
-      console.error("❌ pollsCollection not initialized");
-      socket.emit("poll-data", null);
-      return;
-    }
-
-    try {
-      const count = await pollsCollection.countDocuments({ category, approved: true });
-      if (count === 0) {
-        console.warn(`⚠️ No polls found in category: ${category}`);
-        socket.emit("poll-data", null);
-        return;
-      }
-
-      const polls = await pollsCollection
-        .aggregate([
-          { $match: { category, approved: true } },
-          { $sample: { size: 1 } }
-        ])
-        .toArray();
-
-      const poll = polls[0];
-      console.log(`🎲 Sent poll in category: ${category} | ID: ${poll._id}`);
-      socket.emit("poll-data", poll);
-    } catch (err) {
-      console.error("❌ Failed to fetch random poll:", err);
-      socket.emit("poll-data", null);
-    }
-  });
-
-  // === Handle vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
     console.log("🗳️ === Incoming vote ===");
     console.log("pollId raw:", pollId, "| typeof:", typeof pollId);
 
-    if (!pollId || typeof pollId !== "string") {
-      console.warn("⚠️ Invalid pollId");
-      socket.emit("vote-result", { error: "Invalid pollId" });
+    if (!pollsCollection) {
+      console.error("❌ pollsCollection not initialized");
+      socket.emit("vote-result", { error: "pollsCollection not initialized" });
       return;
     }
 
-    try {
-      const query = { _id: pollId }; // ✅ Brug IKKE new ObjectId()
+    const trimmedPollId = pollId.trim();
+    const query = { _id: trimmedPollId };
 
-      // Find poll to validate
-      const poll = await pollsCollection.findOne(query);
-      if (!poll) {
-        console.warn("⚠️ Poll not found");
-        socket.emit("vote-result", { error: "Poll not found" });
-        return;
-      }
+    const poll = await pollsCollection.findOne(query);
+    console.log("🔍 findOne poll:", poll);
 
-      if (optionIndex < 0 || optionIndex >= poll.options.length) {
-        console.warn("⚠️ Invalid optionIndex");
-        socket.emit("vote-result", { error: "Invalid optionIndex" });
-        return;
-      }
-
-      const result = await pollsCollection.findOneAndUpdate(
-        query,
-        { $inc: { [`options.${optionIndex}.votes`]: 1 } },
-        { returnDocument: "after" }
-      );
-
-      console.log("🔄 findOneAndUpdate result:", result);
-
-      if (!result.value) {
-        console.warn("⚠️ Poll not found at update stage");
-        socket.emit("vote-result", { error: "Poll not found at update stage" });
-        return;
-      }
-
-      io.emit("vote-result", result.value);
-
-    } catch (err) {
-      console.error("❌ Vote update failed:", err);
-      socket.emit("vote-result", { error: "Server error" });
+    if (!poll) {
+      console.warn("⚠️ Poll not found");
+      socket.emit("vote-result", { error: "Poll not found" });
+      return;
     }
+
+    if (optionIndex < 0 || optionIndex >= poll.options.length) {
+      console.warn("⚠️ Invalid optionIndex");
+      socket.emit("vote-result", { error: "Invalid optionIndex" });
+      return;
+    }
+
+    // Bruger updateOne
+    const updateResult = await pollsCollection.updateOne(
+      query,
+      { $inc: { [`options.${optionIndex}.votes`]: 1 } }
+    );
+    console.log("✅ updateOne result:", updateResult);
+
+    const updatedPoll = await pollsCollection.findOne(query);
+    console.log("✅ Updated poll:", updatedPoll);
+
+    if (!updatedPoll) {
+      console.warn("⚠️ Could not fetch updated poll");
+      socket.emit("vote-result", { error: "Could not fetch updated poll" });
+      return;
+    }
+
+    io.emit("vote-result", updatedPoll);
   });
+
 });
 
 // === Health check ===
