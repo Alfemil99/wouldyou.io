@@ -1,22 +1,32 @@
-// === main.js ===
-
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
-// ✅ Socket.IO connection
 const socket = io("https://v-r-backend.onrender.com"); // Din backend URL
 
 let activeCategory = null;
 let activePollId = null;
 
-// === Go back to landing page ===
+// === Parse URL på load ===
+window.addEventListener("DOMContentLoaded", () => {
+  const path = window.location.pathname;
+
+  if (path.startsWith("/poll/")) {
+    const pollId = path.split("/poll/")[1];
+    console.log(`🔗 Opening specific poll by ID: ${pollId}`);
+    socket.emit("get-poll-by-id", { pollId });
+    document.getElementById("categories").style.display = "none";
+    document.getElementById("poll").style.display = "flex";
+  }
+});
+
+// === Go Home ===
 window.goHome = function() {
   document.getElementById("categories").style.display = "grid";
   document.getElementById("poll").style.display = "none";
   document.getElementById("poll").innerHTML = "";
   document.body.classList.remove('voted');
+  window.history.pushState(null, "", `/`);
   activeCategory = null;
   activePollId = null;
-
   console.log("🏠 Back to home");
 };
 
@@ -26,7 +36,6 @@ window.selectCategory = function(category) {
 
   activeCategory = category;
 
-  // Toggle views
   document.getElementById("categories").style.display = "none";
   document.getElementById("poll").style.display = "flex";
 
@@ -39,14 +48,17 @@ socket.on("poll-data", (poll) => {
 
   if (!poll) {
     pollDiv.innerHTML = `
-      <p>No polls found for this category.</p>
+      <p>No polls found.</p>
       <button onclick='goHome()'>Back</button>
     `;
     return;
   }
 
-  console.log("📥 Received poll-data:", poll);
+  console.log("📥 Loaded poll-data:", poll);
   activePollId = poll._id;
+
+  // Opdater URL til delbart link
+  window.history.pushState(null, "", `/poll/${activePollId}`);
 
   pollDiv.innerHTML = `
     <h2>${poll.question_text}</h2>
@@ -56,8 +68,12 @@ socket.on("poll-data", (poll) => {
         <span>${opt.text}</span>
       </button>
     `).join("")}
-    <button onclick="nextPoll()">Next</button>
-    <button onclick="goHome()">Back</button>
+
+    <div class="poll-actions">
+      <button class="poll-button" onclick="copyLink()">🔗 Share Poll</button>
+      <button class="poll-button" onclick="nextPoll()">Next</button>
+      <button class="poll-button" onclick="goHome()">Back</button>
+    </div>
   `;
 
   document.body.classList.remove('voted');
@@ -66,7 +82,7 @@ socket.on("poll-data", (poll) => {
 // === Vote ===
 window.vote = function(optionIndex) {
   if (!activePollId) return;
-  console.log(`🗳️ Emitting vote with pollId: ${activePollId} | optionIndex: ${optionIndex}`);
+  console.log(`🗳️ Voting: ${activePollId} | option ${optionIndex}`);
   socket.emit("vote", { pollId: activePollId, optionIndex });
 };
 
@@ -77,13 +93,12 @@ socket.on("vote-result", (result) => {
     return;
   }
 
-  console.log("📊 Received vote-result:", result);
+  console.log("📊 Vote-result:", result);
 
   const totalVotes = result.options.reduce((sum, opt) => sum + opt.votes, 0);
 
   result.options.forEach((opt, idx) => {
     const percent = totalVotes ? Math.round((opt.votes / totalVotes) * 100) : 0;
-
     const fill = document.querySelector(`#option-${idx} .progress-fill`);
     const label = document.querySelector(`#option-${idx} span`);
 
@@ -91,14 +106,22 @@ socket.on("vote-result", (result) => {
     if (label) label.innerText = `${opt.text}: ${percent}% (${opt.votes} votes)`;
   });
 
-  // Prevent hover effect on voted buttons
   document.body.classList.add('voted');
 });
 
 // === Next Poll ===
 window.nextPoll = function() {
   if (!activeCategory) return;
-  console.log(`🔄 Next poll for category: ${activeCategory}`);
   document.body.classList.remove('voted');
   socket.emit("get-random-poll", { category: activeCategory });
+};
+
+// === Copy Share Link ===
+window.copyLink = function() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    alert("✅ Poll link copied to clipboard!");
+  }).catch(err => {
+    console.error("Clipboard copy failed:", err);
+  });
 };

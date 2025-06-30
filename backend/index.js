@@ -21,7 +21,7 @@ async function connectDB() {
     pollsCollection = db.collection("polls");
 
     console.log("✅ Connected to DB:", db.databaseName);
-    console.log("✅ pollsCollection namespace:", pollsCollection.namespace);
+    console.log("✅ pollsCollection:", pollsCollection.namespace);
 
     const collections = await db.listCollections().toArray();
     console.log("📂 Collections:", collections.map(col => col.name));
@@ -45,7 +45,7 @@ app.use(cors({
   credentials: true
 }));
 
-// === HTTP & Socket.IO server ===
+// === HTTP & Socket.IO ===
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -55,7 +55,6 @@ const io = new Server(server, {
   }
 });
 
-// === Socket.IO connection ===
 io.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
 
@@ -84,16 +83,35 @@ io.on("connection", (socket) => {
     ]).toArray();
 
     const poll = polls[0];
-    console.log("✅ Sending poll:", poll?._id);
+    console.log("✅ Sending random poll:", poll?._id);
     socket.emit("poll-data", poll);
+  });
+
+  // === Get poll by ID (share) ===
+  socket.on("get-poll-by-id", async ({ pollId }) => {
+    console.log(`🔗 get-poll-by-id: ${pollId}`);
+
+    if (!pollsCollection) {
+      console.error("❌ pollsCollection not initialized");
+      socket.emit("poll-data", null);
+      return;
+    }
+
+    const trimmedPollId = pollId.trim();
+    const poll = await pollsCollection.findOne({ _id: trimmedPollId });
+
+    if (!poll) {
+      console.warn(`⚠️ Poll not found for ID: ${trimmedPollId}`);
+      socket.emit("poll-data", null);
+    } else {
+      console.log("✅ Sending poll by ID:", poll._id);
+      socket.emit("poll-data", poll);
+    }
   });
 
   // === Vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
-    console.log("🗳️ === Incoming vote ===");
-    console.log("pollId:", pollId, "| typeof:", typeof pollId);
-    console.log("optionIndex:", optionIndex);
-    console.log("namespace:", pollsCollection?.namespace);
+    console.log("🗳️ Incoming vote:", pollId, optionIndex);
 
     if (!pollsCollection) {
       console.error("❌ pollsCollection not initialized");
@@ -105,8 +123,6 @@ io.on("connection", (socket) => {
     const query = { _id: trimmedPollId };
 
     const poll = await pollsCollection.findOne(query);
-    console.log("🔍 findOne poll:", poll);
-
     if (!poll) {
       console.warn("⚠️ Poll not found");
       socket.emit("vote-result", { error: "Poll not found" });
@@ -119,23 +135,22 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Use updateOne + findOne to avoid findOneAndUpdate issues
     const updateResult = await pollsCollection.updateOne(
       query,
       { $inc: { [`options.${optionIndex}.votes`]: 1 } }
     );
-    console.log("✅ updateOne result:", updateResult);
+    console.log("✅ Votes updated:", updateResult.modifiedCount);
 
     const updatedPoll = await pollsCollection.findOne(query);
-    console.log("✅ Updated poll:", updatedPoll);
+    console.log("✅ Updated poll:", updatedPoll?._id);
 
     if (!updatedPoll) {
-      console.warn("⚠️ Could not fetch updated poll");
       socket.emit("vote-result", { error: "Could not fetch updated poll" });
       return;
     }
 
-    io.emit("vote-result", updatedPoll);
+    // ✅ INDIVIDUAL SESSION: send kun til denne socket!
+    socket.emit("vote-result", updatedPoll);
   });
 
   socket.on("disconnect", () => {
