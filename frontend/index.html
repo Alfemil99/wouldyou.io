@@ -7,8 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Google Font: Outfit -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
 
   <!-- Google AdSense -->
@@ -17,46 +15,71 @@
   <style>
     body {
       font-family: 'Outfit', sans-serif;
-      background: #f9f9f9;
-      color: #111;
-      text-align: center;
-      padding: 2rem;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     header {
       font-weight: 800;
-      font-size: 2.2rem;
-      margin-bottom: 2rem;
+      font-size: 2rem;
+      padding: 1rem;
+      text-align: center;
       cursor: pointer;
     }
 
-    .categories {
-      margin-bottom: 2rem;
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
     }
 
-    .category {
-      display: inline-block;
-      padding: 10px 20px;
-      margin: 5px;
-      border: 2px solid #111;
-      border-radius: 20px;
+    .category-card {
+      position: relative;
+      height: 150px;
+      border-radius: 15px;
+      overflow: hidden;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-
-    .category:hover,
-    .category.active {
-      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: #fff;
+      font-weight: 800;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+      transition: transform 0.2s ease;
+    }
+
+    .category-card:hover {
+      transform: scale(1.05);
+    }
+
+    .category-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.7);
+      z-index: 1;
+    }
+
+    .category-card span {
+      position: relative;
+      z-index: 2;
+      font-size: 1.4rem;
     }
 
     #poll {
-      margin-top: 2rem;
+      padding: 1rem;
+      text-align: center;
     }
 
     #poll h2 {
       font-size: 1.6rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     .option {
@@ -98,25 +121,42 @@
     }
 
     footer {
-      margin-top: 4rem;
+      background: #f1f1f1;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    footer ins {
+      display: block;
     }
   </style>
 </head>
 <body>
   <header onclick="goHome()">WOULDYOU.IO</header>
 
-  <div class="categories">
-    <span class="category" onclick="selectCategory(this, 'Anime')">Anime</span>
-    <span class="category" onclick="selectCategory(this, 'Games')">Games</span>
-    <span class="category" onclick="selectCategory(this, 'Entertainment')">Entertainment</span>
-    <span class="category" onclick="selectCategory(this, 'Politics')">Politics</span>
-    <span class="category" onclick="selectCategory(this, 'Funny')">Funny</span>
-  </div>
+  <!-- Category Grid -->
+  <main id="categories">
+    <div class="category-card" style="--bg:url('anime.jpg')" onclick="selectCategory(this, 'Anime')">
+      <span>Anime</span>
+    </div>
+    <div class="category-card" style="--bg:url('games.jpg')" onclick="selectCategory(this, 'Games')">
+      <span>Games</span>
+    </div>
+    <div class="category-card" style="--bg:url('entertainment.jpg')" onclick="selectCategory(this, 'Entertainment')">
+      <span>Entertainment</span>
+    </div>
+    <div class="category-card" style="--bg:url('politics.jpg')" onclick="selectCategory(this, 'Politics')">
+      <span>Politics</span>
+    </div>
+    <div class="category-card" style="--bg:url('funny.jpg')" onclick="selectCategory(this, 'Funny')">
+      <span>Funny</span>
+    </div>
+  </main>
 
+  <!-- Poll View -->
   <div id="poll"></div>
 
   <footer>
-    <!-- AdSense Slot (f.eks.) -->
     <ins class="adsbygoogle"
          style="display:block"
          data-ad-client="ca-pub-5747384081350738"
@@ -127,5 +167,11 @@
   </footer>
 
   <script type="module" src="main.js"></script>
+
+  <style>
+    .category-card::before {
+      background-image: var(--bg);
+    }
+  </style>
 </body>
 </html>

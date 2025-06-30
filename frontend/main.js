@@ -3,41 +3,49 @@
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 // ✅ Socket.IO connection
-const socket = io("https://v-r-backend.onrender.com"); // Tilpas din backend URL!
+const socket = io("https://v-r-backend.onrender.com"); // Din backend URL
 
 let activeCategory = null;
 let activePollId = null;
 
 // === Go back to landing page ===
 window.goHome = function() {
-  document.querySelectorAll(".category").forEach(btn => btn.classList.remove("active"));
+  // Vis kategorier igen
+  document.getElementById("categories").style.display = "grid";
   document.getElementById("poll").innerHTML = "";
+  document.getElementById("poll").style.display = "none";
+
   activeCategory = null;
   activePollId = null;
+
+  console.log("🏠 Went back to home");
 };
 
 // === Select category & get random poll ===
-window.selectCategory = function(element, category) {
+window.selectCategory = function(category) {
   console.log("🔄 Loading poll for category:", category);
-  document.querySelectorAll(".category").forEach(btn => btn.classList.remove("active"));
-  element.classList.add("active");
+
   activeCategory = category;
+
+  // Skjul kategorier, vis poll-container
+  document.getElementById("categories").style.display = "none";
+  document.getElementById("poll").style.display = "block";
 
   socket.emit("get-random-poll", { category });
 };
 
 // === Receive poll ===
 socket.on("poll-data", (poll) => {
+  const pollDiv = document.getElementById("poll");
+
   if (!poll) {
-    document.getElementById("poll").innerHTML = "<p>No polls found for this category.</p>";
+    pollDiv.innerHTML = "<p>No polls found for this category.</p><button onclick='goHome()'>Back</button>";
     return;
   }
 
   console.log("📥 Received poll-data:", poll);
   activePollId = poll._id;
-  console.log("✅ activePollId:", activePollId, "| typeof:", typeof activePollId);
 
-  const pollDiv = document.getElementById("poll");
   pollDiv.innerHTML = `
     <h2>${poll.question_text}</h2>
     ${poll.options.map((opt, idx) => `
@@ -46,9 +54,10 @@ socket.on("poll-data", (poll) => {
       <div class="result-text" id="text-${idx}"></div>
     `).join("")}
     <button onclick="nextPoll()">Next</button>
+    <br><button onclick="goHome()">Back to Categories</button>
   `;
 
-  // Hide result bars initially
+  // Reset result bars
   poll.options.forEach((_, idx) => {
     document.getElementById(`fill-${idx}`).style.width = "0%";
     document.getElementById(`text-${idx}`).innerText = "";
