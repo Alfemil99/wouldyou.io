@@ -3,37 +3,70 @@
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
 // ✅ Socket.IO connection
-const socket = io("https://v-r-backend.onrender.com");
+const socket = io("https://v-r-backend.onrender.com"); // Din backend URL
 
 let activeCategory = null;
 let activePollId = null;
 
-// === Parse URL på load ===
+// === SPA Parse URL on load ===
 window.addEventListener("DOMContentLoaded", () => {
   const path = window.location.pathname;
 
-  // Check for /poll/:id
   if (path.startsWith("/poll/")) {
     const pollId = path.split("/poll/")[1];
-    console.log(`🔗 Opening specific poll by ID: ${pollId}`);
+    console.log(`🔗 Opening poll by ID: ${pollId}`);
     loadPollById(pollId);
+  } else {
+    showHome();
+    loadTrending();
   }
-
-  // Load trending on homepage
-  loadTrending();
 });
 
 // === Go Home ===
 window.goHome = function() {
+  showHome();
+  loadTrending();
+  window.history.pushState(null, "", `/`);
+  console.log("🏠 Back to home");
+};
+
+function showHome() {
   document.getElementById("categories").style.display = "grid";
   document.getElementById("poll").style.display = "none";
   document.getElementById("poll").innerHTML = "";
+
+  document.querySelector(".trending").style.display = "block";
+  document.querySelector(".random-poll").style.display = "block";
+
   document.body.classList.remove('voted');
-  window.history.pushState(null, "", `/`);
   activeCategory = null;
   activePollId = null;
-  console.log("🏠 Back to home");
-  loadTrending();
+}
+
+// === Load specific poll by ID ===
+window.loadPollById = function(pollId) {
+  console.log(`📌 Loading poll by ID: ${pollId}`);
+
+  hideHomeElements();
+
+  document.getElementById("poll").style.display = "flex";
+  socket.emit("get-poll-by-id", { pollId });
+};
+
+// === Hide non-poll elements ===
+function hideHomeElements() {
+  document.getElementById("categories").style.display = "none";
+  document.querySelector(".trending").style.display = "none";
+  document.querySelector(".random-poll").style.display = "none";
+}
+
+// === Load random poll ===
+window.loadRandomPoll = function() {
+  console.log("🎲 Loading Random Poll of the Day");
+
+  hideHomeElements();
+  document.getElementById("poll").style.display = "flex";
+  socket.emit("get-random-poll", {});
 };
 
 // === Select category & get random poll ===
@@ -42,30 +75,10 @@ window.selectCategory = function(category) {
 
   activeCategory = category;
 
-  document.getElementById("categories").style.display = "none";
+  hideHomeElements();
   document.getElementById("poll").style.display = "flex";
 
   socket.emit("get-random-poll", { category: category });
-};
-
-// === Load random poll from Random Poll CTA ===
-window.loadRandomPoll = function() {
-  console.log("🎲 Loading Random Poll of the Day");
-  activeCategory = null;
-
-  document.getElementById("categories").style.display = "none";
-  document.getElementById("poll").style.display = "flex";
-
-  socket.emit("get-random-poll", {}); // No category, just any poll
-};
-
-// === Load specific poll by ID (for share link or trending) ===
-window.loadPollById = function(pollId) {
-  console.log(`📌 Loading poll by ID: ${pollId}`);
-  document.getElementById("categories").style.display = "none";
-  document.getElementById("poll").style.display = "flex";
-
-  socket.emit("get-poll-by-id", { pollId });
 };
 
 // === Receive poll ===
@@ -83,7 +96,6 @@ socket.on("poll-data", (poll) => {
   console.log("📥 Loaded poll-data:", poll);
   activePollId = poll._id;
 
-  // Opdater URL til delbart link
   window.history.pushState(null, "", `/poll/${activePollId}`);
 
   pollDiv.innerHTML = `
@@ -190,7 +202,6 @@ socket.on("trending-polls", (polls) => {
     card.className = "trend-card";
     card.onclick = () => loadPollById(poll._id);
 
-    // You could add a preview image per poll if you store one
     card.innerHTML = `
       <img src="images/sample.png" alt="Trending Poll">
       <p>${poll.question_text}</p>
