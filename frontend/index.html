@@ -9,7 +9,7 @@
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
 
-  <!-- Your stylesheet -->
+  <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css" />
 
   <!-- Google AdSense -->
@@ -18,33 +18,30 @@
 </head>
 
 <body>
+  <!-- === HEADER === -->
   <header onclick="goHome()">
     <h1>WOULDYOU.IO</h1>
     <p class="tagline">Vote, share & see what the world thinks!</p>
   </header>
 
-  <!-- Trending Carousel -->
+  <!-- === TRENDING POLLS === -->
   <section class="trending">
     <h2>🔥 Trending Polls</h2>
     <div class="carousel" id="trending-carousel">
-      <!-- Dummy cards; will be generated dynamically -->
-      <!-- Example: -->
-      <!--
-      <div class="trend-card" onclick="loadPollById('123')">
-        <img src="images/sample.png" alt="Trending">
-        <p>Which anime would you rewatch?</p>
-      </div>
-      -->
+      <!-- Cards will be injected dynamically -->
     </div>
   </section>
 
-  <!-- Random Poll of the Day -->
+  <!-- === RANDOM POLL PREVIEW === -->
   <section class="random-poll">
     <h2>🎲 Random Poll of the Day</h2>
-    <button class="cta-button" onclick="loadRandomPoll()">Try It Now</button>
+    <div id="random-preview">
+      <p id="random-question">Loading...</p>
+      <button class="cta-button" id="random-link">Try It Now</button>
+    </div>
   </section>
 
-  <!-- Category Grid -->
+  <!-- === CATEGORY GRID === -->
   <main id="categories" class="categories">
     <div class="category-card" style="--bg: url('images/anime.png')" onclick="selectCategory('Anime')">
       <span>Anime</span>
@@ -66,10 +63,35 @@
     </div>
   </main>
 
-  <!-- Poll Area -->
+  <!-- === POLL AREA === -->
   <div id="poll"></div>
 
-  <!-- Adsense Sticky Footer -->
+  <!-- === SUBMIT FORM (HIDDEN) === -->
+  <div id="submit-form" style="display: none;">
+    <h2>➕ Submit a New Poll</h2>
+    <form onsubmit="submitPoll(event)">
+      <label>Category:
+        <select id="submit-category" required>
+          <option value="Anime">Anime</option>
+          <option value="Games">Games</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Politics">Politics</option>
+          <option value="Funny">Funny</option>
+        </select>
+      </label>
+      <label>Question:
+        <input type="text" id="submit-question" required maxlength="150">
+      </label>
+      <label>Options (one per line):
+        <textarea id="submit-options" rows="5" required></textarea>
+      </label>
+      <button type="submit" class="cta-button">Submit Poll</button>
+      <button type="button" class="poll-button" onclick="goHome()">Back</button>
+    </form>
+    <p>Your submission will be reviewed before being published.</p>
+  </div>
+
+  <!-- === ADSENSE STICKY FOOTER === -->
   <footer>
     <ins class="adsbygoogle"
       style="display:block"
@@ -81,6 +103,7 @@
     <p>&copy; 2025 WOULDYOU.IO</p>
   </footer>
 
+  <!-- === MAIN JS === -->
   <script type="module" src="main.js"></script>
 </body>
 </html>

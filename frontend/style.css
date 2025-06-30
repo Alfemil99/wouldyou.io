@@ -1,11 +1,22 @@
-/* === Global === */
+/* === General === */
 html, body {
   margin: 0;
   height: 100%;
-  font-family: 'Outfit', sans-serif;
   background: #111;
   color: #fff;
+  font-family: 'Outfit', sans-serif;
   user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 /* === Header === */
@@ -13,110 +24,112 @@ header {
   text-align: center;
   padding: 1rem;
   background: #000;
+  cursor: pointer;
 }
 
 header h1 {
-  margin: 0;
   font-size: 2rem;
   font-weight: 800;
 }
 
-.tagline {
-  margin-top: 0.5rem;
-  color: #ccc;
-  font-weight: 400;
-  font-size: 1rem;
+header .tagline {
+  font-size: 0.9rem;
+  opacity: 0.7;
 }
 
-/* === Trending Carousel === */
+/* === Trending === */
 .trending {
   padding: 1rem;
 }
 
 .trending h2 {
-  margin: 0 0 1rem;
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
 }
 
 .carousel {
   display: flex;
   gap: 1rem;
   overflow-x: auto;
-  padding-bottom: 1rem;
+  padding: 0.5rem 0;
 }
 
 .trend-card {
+  flex: 0 0 auto;
   min-width: 200px;
-  flex: none;
-  border-radius: 15px;
-  overflow: hidden;
   background: #222;
+  border-radius: 12px;
+  padding: 1rem;
   cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-.trend-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-}
-
-.trend-card p {
-  margin: 0;
-  padding: 0.5rem;
-  font-weight: 600;
+  transition: transform 0.2s ease;
 }
 
 .trend-card:hover {
   transform: scale(1.05);
 }
 
+.trend-card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.trend-card p {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
 /* === Random Poll === */
 .random-poll {
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 1rem;
 }
 
 .random-poll h2 {
-  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+}
+
+#random-question {
+  margin: 0.5rem 0;
+  font-weight: 600;
 }
 
 .cta-button {
-  padding: 1rem 2rem;
   background: #fff;
-  color: #000;
+  color: #111;
   border: none;
-  border-radius: 50px;
-  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  font-weight: 600;
+  transition: background 0.2s ease;
 }
 
 .cta-button:hover {
-  transform: scale(1.05);
+  background: #ddd;
 }
 
-/* === Categories Grid === */
+/* === Category Grid === */
 .categories {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
   padding: 1rem;
 }
 
 .category-card {
   position: relative;
+  height: 150px;
   border-radius: 15px;
   overflow: hidden;
-  height: 150px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
   text-transform: uppercase;
   font-weight: 800;
-  font-size: 1.2rem;
-  color: #fff;
+  font-size: 1rem;
+  text-align: center;
   text-shadow: 0 0 5px rgba(0,0,0,0.7);
   transition: transform 0.3s ease;
 }
@@ -142,45 +155,52 @@ header h1 {
 }
 
 .add-your-own {
-  background: #444;
+  background: #333 !important;
+  color: #fff;
 }
 
 .add-your-own span {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
-/* === Poll === */
+.add-your-own:hover {
+  background: #444 !important;
+}
+
+/* === Poll View === */
 #poll {
   display: none;
-  padding: 2rem;
+  flex: 1;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 
 #poll h2 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   margin-bottom: 2rem;
   max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-/* === Poll Options === */
+.poll-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 800px;
+}
+
 .poll-option {
   position: relative;
-  display: block;
-  width: 90%;
-  max-width: 600px;
-  margin: 1rem auto;
-  padding: 1rem 2rem;
-  background: #222;
+  padding: 1rem;
   border: 2px solid #fff;
-  border-radius: 50px;
-  overflow: hidden;
+  border-radius: 15px;
+  background: #222;
   cursor: pointer;
-  font-weight: 600;
+  overflow: hidden;
   transition: all 0.3s ease;
-  color: #fff;
-  text-align: center;
 }
 
 .poll-option:hover {
@@ -188,15 +208,10 @@ header h1 {
   color: #000;
 }
 
-.poll-option span {
-  position: relative;
-  z-index: 2;
-}
-
 .poll-option .progress-fill {
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
   height: 100%;
   background: #0f0;
   width: 0%;
@@ -204,38 +219,69 @@ header h1 {
   transition: width 0.5s ease;
 }
 
+.poll-option span {
+  position: relative;
+  z-index: 2;
+}
+
 body.voted .poll-option:hover {
   background: #222;
   color: #fff;
-}
-
-.poll-option:disabled {
-  opacity: 0.6;
   cursor: default;
 }
 
-/* === Poll Actions (Share, Next, Back) === */
+/* === Poll Actions === */
 .poll-actions {
-  margin-top: 2rem;
   display: flex;
   gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
+  margin-top: 2rem;
 }
 
 .poll-button {
-  padding: 0.8rem 1.5rem;
   background: #fff;
-  color: #000;
+  color: #111;
   border: none;
   border-radius: 50px;
-  font-weight: 700;
+  padding: 0.6rem 1.2rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  font-weight: 600;
+  transition: background 0.2s ease;
 }
 
 .poll-button:hover {
-  transform: scale(1.05);
+  background: #ddd;
+}
+
+/* === Submit Form === */
+#submit-form {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: #222;
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+#submit-form h2 {
+  margin-bottom: 1rem;
+}
+
+#submit-form label {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+#submit-form input,
+#submit-form select,
+#submit-form textarea {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: none;
+  margin-top: 0.3rem;
+}
+
+#submit-form button {
+  margin-top: 1rem;
 }
 
 /* === Footer === */
@@ -243,8 +289,20 @@ footer {
   background: #000;
   padding: 1rem;
   text-align: center;
+  font-size: 0.8rem;
 }
 
 footer ins {
   display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* === Utilities === */
+::-webkit-scrollbar {
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
 }

@@ -2,111 +2,107 @@
 
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
-// ✅ Socket.IO connection
-const socket = io("https://v-r-backend.onrender.com"); // Din backend URL
+const socket = io("https://v-r-backend.onrender.com"); // din backend URL
 
 let activeCategory = null;
 let activePollId = null;
 
-// === SPA Parse URL on load ===
+// === On Load: tjek for direkte poll ===
 window.addEventListener("DOMContentLoaded", () => {
   const path = window.location.pathname;
 
   if (path.startsWith("/poll/")) {
     const pollId = path.split("/poll/")[1];
-    console.log(`🔗 Opening poll by ID: ${pollId}`);
-    loadPollById(pollId);
+    console.log(`🔗 Opening shared poll: ${pollId}`);
+    hideAll();
+    document.getElementById("poll").style.display = "block";
+    socket.emit("get-poll-by-id", { pollId });
   } else {
-    showHome();
-    loadTrending();
+    // Forside -> hent trending & random preview
+    socket.emit("get-trending-polls");
+    socket.emit("get-random-poll-preview");
   }
 });
 
 // === Go Home ===
-window.goHome = function() {
-  showHome();
-  loadTrending();
-  window.history.pushState(null, "", `/`);
-  console.log("🏠 Back to home");
-};
-
-function showHome() {
-  document.getElementById("categories").style.display = "grid";
-  document.getElementById("poll").style.display = "none";
-  document.getElementById("poll").innerHTML = "";
-
+window.goHome = function () {
+  hideAll();
   document.querySelector(".trending").style.display = "block";
   document.querySelector(".random-poll").style.display = "block";
-
-  document.body.classList.remove('voted');
+  document.getElementById("categories").style.display = "grid";
+  document.body.classList.remove("voted");
+  window.history.pushState(null, "", `/`);
   activeCategory = null;
   activePollId = null;
-}
-
-// === Load specific poll by ID ===
-window.loadPollById = function(pollId) {
-  console.log(`📌 Loading poll by ID: ${pollId}`);
-
-  hideHomeElements();
-
-  document.getElementById("poll").style.display = "flex";
-  socket.emit("get-poll-by-id", { pollId });
 };
 
-// === Hide non-poll elements ===
-function hideHomeElements() {
-  document.getElementById("categories").style.display = "none";
+// === HIDE ALL ===
+function hideAll() {
   document.querySelector(".trending").style.display = "none";
   document.querySelector(".random-poll").style.display = "none";
+  document.getElementById("categories").style.display = "none";
+  document.getElementById("poll").style.display = "none";
+  document.getElementById("submit-form").style.display = "none";
 }
 
-// === Load random poll ===
-window.loadRandomPoll = function() {
-  console.log("🎲 Loading Random Poll of the Day");
-
-  hideHomeElements();
-  document.getElementById("poll").style.display = "flex";
-  socket.emit("get-random-poll", {});
-};
-
-// === Select category & get random poll ===
-window.selectCategory = function(category) {
-  console.log("🔄 Loading poll for category:", category);
-
+// === Select Category ===
+window.selectCategory = function (category) {
+  console.log(`🔄 Loading poll for category: ${category}`);
   activeCategory = category;
 
-  hideHomeElements();
-  document.getElementById("poll").style.display = "flex";
+  hideAll();
+  document.getElementById("poll").style.display = "block";
 
   socket.emit("get-random-poll", { category: category });
 };
 
-// === Receive poll ===
-socket.on("poll-data", (poll) => {
-  const pollDiv = document.getElementById("poll");
+// === Load Poll by ID ===
+window.loadPollById = function (pollId) {
+  console.log(`🔗 loadPollById(${pollId})`);
+  hideAll();
+  document.getElementById("poll").style.display = "block";
+  socket.emit("get-poll-by-id", { pollId });
+};
 
+// === Load Random Poll ===
+window.loadRandomPoll = function () {
+  console.log("🎲 Loading random poll");
+  hideAll();
+  document.getElementById("poll").style.display = "block";
+  socket.emit("get-random-poll", { category: null }); // random
+};
+
+// === Open Submit Form ===
+window.openSubmitPoll = function () {
+  hideAll();
+  document.getElementById("submit-form").style.display = "block";
+};
+
+// === Poll DATA ===
+socket.on("poll-data", (poll) => {
   if (!poll) {
-    pollDiv.innerHTML = `
-      <p>No polls found.</p>
-      <button class="poll-button" onclick='goHome()'>Back</button>
+    document.getElementById("poll").innerHTML = `
+      <p>Poll not found.</p>
+      <button onclick="goHome()" class="poll-button">Back</button>
     `;
     return;
   }
 
   console.log("📥 Loaded poll-data:", poll);
   activePollId = poll._id;
-
   window.history.pushState(null, "", `/poll/${activePollId}`);
 
+  const pollDiv = document.getElementById("poll");
   pollDiv.innerHTML = `
     <h2>${poll.question_text}</h2>
-    ${poll.options.map((opt, idx) => `
-      <button class="poll-option" id="option-${idx}" onclick="vote(${idx})">
-        <div class="progress-fill"></div>
-        <span>${opt.text}</span>
-      </button>
-    `).join("")}
-
+    <div class="poll-options">
+      ${poll.options.map((opt, idx) => `
+        <button class="poll-option" id="option-${idx}" onclick="vote(${idx})">
+          <div class="progress-fill"></div>
+          <span>${opt.text}</span>
+        </button>
+      `).join("")}
+    </div>
     <div class="poll-actions">
       <button class="poll-button" onclick="copyLink()">🔗 Share Poll</button>
       <button class="poll-button" onclick="nextPoll()">Next</button>
@@ -114,23 +110,23 @@ socket.on("poll-data", (poll) => {
     </div>
   `;
 
-  document.body.classList.remove('voted');
+  document.body.classList.remove("voted");
 });
 
 // === Vote ===
-window.vote = function(optionIndex) {
+window.vote = function (optionIndex) {
   if (!activePollId) return;
 
-  if (document.body.classList.contains('voted')) {
-    console.log("⚠️ Already voted, ignoring click");
+  if (document.body.classList.contains("voted")) {
+    console.log("⚠️ Already voted");
     return;
   }
 
-  console.log(`🗳️ Voting: ${activePollId} | option ${optionIndex}`);
+  console.log(`🗳️ Voting on ${activePollId} | option ${optionIndex}`);
   socket.emit("vote", { pollId: activePollId, optionIndex });
 };
 
-// === Receive vote result ===
+// === Vote Result ===
 socket.on("vote-result", (result) => {
   if (result.error) {
     console.error("❌ Vote error:", result.error);
@@ -150,50 +146,42 @@ socket.on("vote-result", (result) => {
     if (label) label.innerText = `${opt.text}: ${percent}% (${opt.votes} votes)`;
   });
 
-  document.body.classList.add('voted');
-
-  document.querySelectorAll('.poll-option').forEach(btn => {
+  document.body.classList.add("voted");
+  document.querySelectorAll(".poll-option").forEach(btn => {
     btn.disabled = true;
     btn.style.cursor = "default";
   });
 });
 
 // === Next Poll ===
-window.nextPoll = function() {
-  if (activeCategory) {
-    socket.emit("get-random-poll", { category: activeCategory });
-  } else {
-    socket.emit("get-random-poll", {});
+window.nextPoll = function () {
+  if (!activeCategory) {
+    loadRandomPoll();
+    return;
   }
 
-  document.body.classList.remove('voted');
+  document.body.classList.remove("voted");
   window.history.pushState(null, "", `/`);
+  socket.emit("get-random-poll", { category: activeCategory });
 };
 
-// === Copy Share Link ===
-window.copyLink = function() {
+// === Copy Link ===
+window.copyLink = function () {
   const url = window.location.href;
   navigator.clipboard.writeText(url).then(() => {
-    alert("✅ Poll link copied to clipboard!");
+    alert("✅ Link copied!");
   }).catch(err => {
-    console.error("Clipboard copy failed:", err);
+    console.error(err);
   });
 };
 
-// === Load Trending Polls ===
-function loadTrending() {
-  console.log("🔥 Loading trending polls");
-  socket.emit("get-trending-polls");
-}
-
-// === Receive Trending Data ===
+// === Trending Polls ===
 socket.on("trending-polls", (polls) => {
-  console.log("📊 Trending polls:", polls);
   const carousel = document.getElementById("trending-carousel");
-  carousel.innerHTML = ""; // Clear old
+  carousel.innerHTML = "";
 
-  if (!polls || polls.length === 0) {
-    carousel.innerHTML = "<p>No trending polls yet.</p>";
+  if (!polls.length) {
+    carousel.innerHTML = "<p>No trending polls right now.</p>";
     return;
   }
 
@@ -201,11 +189,47 @@ socket.on("trending-polls", (polls) => {
     const card = document.createElement("div");
     card.className = "trend-card";
     card.onclick = () => loadPollById(poll._id);
-
     card.innerHTML = `
-      <img src="images/sample.png" alt="Trending Poll">
-      <p>${poll.question_text}</p>
+      <h3>${poll.question_text}</h3>
+      <p>${poll.totalVotes || 0} votes</p>
     `;
     carousel.appendChild(card);
   });
 });
+
+// === Random Poll Preview ===
+socket.on("random-poll-preview", (poll) => {
+  document.getElementById("random-question").innerText = poll.question_text;
+  const randomLink = document.getElementById("random-link");
+  randomLink.onclick = () => loadPollById(poll._id);
+});
+
+// === Submit Poll ===
+window.submitPoll = function (e) {
+  e.preventDefault();
+
+  const category = document.getElementById("submit-category").value.trim();
+  const question = document.getElementById("submit-question").value.trim();
+  const optionsRaw = document.getElementById("submit-options").value.trim();
+
+  if (!category || !question || !optionsRaw) {
+    alert("Please fill out all fields!");
+    return;
+  }
+
+  const options = optionsRaw.split("\n").map(line => line.trim()).filter(line => line);
+
+  if (options.length < 2) {
+    alert("At least 2 options required!");
+    return;
+  }
+
+  socket.emit("submit-poll", {
+    category,
+    question_text: question,
+    options: options
+  });
+
+  alert("✅ Your poll has been submitted for review!");
+  goHome();
+};
