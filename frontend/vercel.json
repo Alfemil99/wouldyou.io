@@ -1,9 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
-      "has": [{ "type": "filesystem" }],
-      "destination": "/$1"
+      "source": "/poll/:id",
+      "destination": "/"
     },
     {
       "source": "/(.*)",
