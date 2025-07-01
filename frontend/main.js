@@ -2,41 +2,29 @@
 
 import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
-const socket = io("https://v-r-backend.onrender.com"); // din backend URL
+const socket = io("https://v-r-backend.onrender.com");
 
 let activeCategory = null;
 let activePollId = null;
 
-// === On Load: tjek for direkte poll ===
+// === On Load: Direct Poll Link or Home ===
 window.addEventListener("DOMContentLoaded", () => {
   const path = window.location.pathname;
 
   if (path.startsWith("/poll/")) {
     const pollId = path.split("/poll/")[1];
     console.log(`🔗 Opening shared poll: ${pollId}`);
-    hideAll();
-    document.getElementById("poll").style.display = "block";
+    showPoll();
     socket.emit("get-poll-by-id", { pollId });
   } else {
-    // Forside -> hent trending & random preview
+    // Home: trending + random preview
+    showHome();
     socket.emit("get-trending-polls");
     socket.emit("get-random-poll-preview");
   }
 });
 
-// === Go Home ===
-window.goHome = function () {
-  hideAll();
-  document.querySelector(".trending").style.display = "block";
-  document.querySelector(".random-poll").style.display = "block";
-  document.getElementById("categories").style.display = "grid";
-  document.body.classList.remove("voted");
-  window.history.pushState(null, "", `/`);
-  activeCategory = null;
-  activePollId = null;
-};
-
-// === HIDE ALL ===
+// === Helpers ===
 function hideAll() {
   document.querySelector(".trending").style.display = "none";
   document.querySelector(".random-poll").style.display = "none";
@@ -45,43 +33,66 @@ function hideAll() {
   document.getElementById("submit-form").style.display = "none";
 }
 
+function showPoll() {
+  hideAll();
+  document.getElementById("poll").style.display = "block";
+}
+
+function showHome() {
+  hideAll();
+  document.querySelector(".trending").style.display = "block";
+  document.querySelector(".random-poll").style.display = "block";
+  document.getElementById("categories").style.display = "grid";
+}
+
+function showSubmit() {
+  hideAll();
+  document.getElementById("submit-form").style.display = "block";
+}
+
+// === Go Home ===
+window.goHome = function () {
+  showHome();
+  document.body.classList.remove("voted");
+  window.history.pushState(null, "", `/`);
+  activeCategory = null;
+  activePollId = null;
+};
+
 // === Select Category ===
 window.selectCategory = function (category) {
   console.log(`🔄 Loading poll for category: ${category}`);
   activeCategory = category;
 
-  hideAll();
-  document.getElementById("poll").style.display = "block";
-
-  socket.emit("get-random-poll", { category: category });
+  showPoll();
+  socket.emit("get-random-poll", { category });
 };
 
 // === Load Poll by ID ===
 window.loadPollById = function (pollId) {
   console.log(`🔗 loadPollById(${pollId})`);
-  hideAll();
-  document.getElementById("poll").style.display = "block";
+  showPoll();
   socket.emit("get-poll-by-id", { pollId });
 };
 
 // === Load Random Poll ===
 window.loadRandomPoll = function () {
   console.log("🎲 Loading random poll");
-  hideAll();
-  document.getElementById("poll").style.display = "block";
-  socket.emit("get-random-poll", { category: null }); // random
+  showPoll();
+  socket.emit("get-random-poll", { category: null });
 };
 
 // === Open Submit Form ===
 window.openSubmitPoll = function () {
-  hideAll();
-  document.getElementById("submit-form").style.display = "block";
+  showSubmit();
 };
 
-// === Poll DATA ===
+// === Receive Poll ===
 socket.on("poll-data", (poll) => {
+  const pollDiv = document.getElementById("poll");
+
   if (!poll) {
-    document.getElementById("poll").innerHTML = `
+    pollDiv.innerHTML = `
       <p>Poll not found.</p>
       <button onclick="goHome()" class="poll-button">Back</button>
     `;
@@ -92,7 +103,6 @@ socket.on("poll-data", (poll) => {
   activePollId = poll._id;
   window.history.pushState(null, "", `/poll/${activePollId}`);
 
-  const pollDiv = document.getElementById("poll");
   pollDiv.innerHTML = `
     <h2>${poll.question_text}</h2>
     <div class="poll-options">
@@ -126,7 +136,7 @@ window.vote = function (optionIndex) {
   socket.emit("vote", { pollId: activePollId, optionIndex });
 };
 
-// === Vote Result ===
+// === Receive Vote Result ===
 socket.on("vote-result", (result) => {
   if (result.error) {
     console.error("❌ Vote error:", result.error);
@@ -155,14 +165,14 @@ socket.on("vote-result", (result) => {
 
 // === Next Poll ===
 window.nextPoll = function () {
-  if (!activeCategory) {
-    loadRandomPoll();
-    return;
-  }
-
   document.body.classList.remove("voted");
   window.history.pushState(null, "", `/`);
-  socket.emit("get-random-poll", { category: activeCategory });
+
+  if (activeCategory) {
+    socket.emit("get-random-poll", { category: activeCategory });
+  } else {
+    loadRandomPoll();
+  }
 };
 
 // === Copy Link ===
