@@ -1,12 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/poll/:id",
-      "destination": "/"
-    },
-    {
       "source": "/(.*)",
-      "destination": "/"
+      "destination": "/index.html"
     }
   ]
 }
