@@ -4,7 +4,7 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -88,8 +88,17 @@ io.on("connection", (socket) => {
   // === Get poll by ID ===
   socket.on("get-poll-by-id", async ({ pollId }) => {
     if (!pollsCollection) return;
-    const trimmedId = pollId.trim();
-    const poll = await pollsCollection.findOne({ _id: trimmedId });
+
+    let objectId;
+    try {
+      objectId = new ObjectId(pollId.trim());
+    } catch (e) {
+      console.warn(`⚠️ Invalid ObjectId format: ${pollId}`);
+      socket.emit("poll-data", null);
+      return;
+    }
+
+    const poll = await pollsCollection.findOne({ _id: objectId });
     if (!poll) {
       console.warn(`⚠️ Poll not found: ${pollId}`);
       socket.emit("poll-data", null);
@@ -147,8 +156,15 @@ io.on("connection", (socket) => {
   socket.on("vote", async ({ pollId, optionIndex }) => {
     if (!pollsCollection) return;
 
-    const trimmedPollId = pollId.trim();
-    const poll = await pollsCollection.findOne({ _id: trimmedPollId });
+    let objectId;
+    try {
+      objectId = new ObjectId(pollId.trim());
+    } catch (e) {
+      socket.emit("vote-result", { error: "Invalid poll ID" });
+      return;
+    }
+
+    const poll = await pollsCollection.findOne({ _id: objectId });
     if (!poll) {
       socket.emit("vote-result", { error: "Poll not found" });
       return;
@@ -160,11 +176,11 @@ io.on("connection", (socket) => {
     }
 
     await pollsCollection.updateOne(
-      { _id: trimmedPollId },
+      { _id: objectId },
       { $inc: { [`options.${optionIndex}.votes`]: 1 } }
     );
 
-    const updatedPoll = await pollsCollection.findOne({ _id: trimmedPollId });
+    const updatedPoll = await pollsCollection.findOne({ _id: objectId });
     socket.emit("vote-result", updatedPoll);
   });
 
