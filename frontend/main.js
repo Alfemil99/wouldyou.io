@@ -10,12 +10,12 @@ let activePollId = null;
 // === Farver til block poll style ===
 const colors = ["#B71C1C", "#8D6E63", "#616161", "#4CAF50", "#2196F3", "#FFC107", "#FF5722"];
 
-// === On Load: Direct Poll Link or Home ===
+// === On Load: Direct Poll Link or Home (query param version) ===
 window.addEventListener("DOMContentLoaded", () => {
-  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+  const pollId = params.get("poll");
 
-  if (path.startsWith("/poll/")) {
-    const pollId = path.split("/poll/")[1];
+  if (pollId) {
     console.log(`🔗 Opening shared poll: ${pollId}`);
     showPoll();
     socket.emit("get-poll-by-id", { pollId });
@@ -103,7 +103,9 @@ socket.on("poll-data", (poll) => {
 
   console.log("📥 Loaded poll-data:", poll);
   activePollId = poll._id;
-  window.history.pushState(null, "", `/poll/${activePollId}`);
+
+  // ✅ Query param version
+  window.history.pushState(null, "", `/?poll=${activePollId}`);
 
   pollDiv.innerHTML = `
     <h2>${poll.question_text}</h2>
@@ -184,7 +186,11 @@ window.nextPoll = function () {
 
 // === Copy Link ===
 window.copyLink = function () {
-  const url = window.location.href;
+  if (!activePollId) {
+    alert("⚠️ No poll loaded!");
+    return;
+  }
+  const url = `${window.location.origin}/?poll=${activePollId}`;
   navigator.clipboard.writeText(url).then(() => {
     alert("✅ Link copied!");
   }).catch(err => {

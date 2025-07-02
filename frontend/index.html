@@ -24,72 +24,75 @@
     <p class="tagline">Vote, share & see what the world thinks!</p>
   </header>
 
-  <!-- === TRENDING POLLS === -->
-  <section class="trending">
-    <h2>🔥 Trending Polls</h2>
-    <div class="carousel" id="trending-carousel">
-      <!-- Cards will be injected dynamically -->
-    </div>
-  </section>
+  <!-- === MAIN === -->
+  <main>
+    <!-- === TRENDING POLLS === -->
+    <section class="trending">
+      <h2>🔥 Trending Polls</h2>
+      <div class="carousel" id="trending-carousel">
+        <!-- Cards will be injected dynamically -->
+      </div>
+    </section>
 
-  <!-- === RANDOM POLL PREVIEW === -->
-  <section class="random-poll">
-    <h2>🎲 Random Poll of the Day</h2>
-    <div id="random-preview">
-      <p id="random-question">Loading...</p>
-      <button class="cta-button" id="random-link">Try It Now</button>
-    </div>
-  </section>
+    <!-- === RANDOM POLL PREVIEW === -->
+    <section class="random-poll">
+      <h2>🎲 Random Poll of the Day</h2>
+      <div id="random-preview">
+        <p id="random-question">Loading...</p>
+        <button class="cta-button" id="random-link">Try It Now</button>
+      </div>
+    </section>
 
-  <!-- === CATEGORY GRID === -->
-  <main id="categories" class="categories">
-    <div class="category-card" style="--bg: url('images/anime.png')" onclick="selectCategory('Anime')">
-      <span>Anime</span>
-    </div>
-    <div class="category-card" style="--bg: url('images/games.png')" onclick="selectCategory('Games')">
-      <span>Games</span>
-    </div>
-    <div class="category-card" style="--bg: url('images/entertainment.png')" onclick="selectCategory('Entertainment')">
-      <span>Entertainment</span>
-    </div>
-    <div class="category-card" style="--bg: url('images/politics.png')" onclick="selectCategory('Politics')">
-      <span>Politics</span>
-    </div>
-    <div class="category-card" style="--bg: url('images/funny.png')" onclick="selectCategory('Funny')">
-      <span>Funny</span>
-    </div>
-    <div class="category-card add-your-own" onclick="openSubmitPoll()">
-      <span>➕ Add Your Own</span>
+    <!-- === CATEGORY GRID === -->
+    <section id="categories" class="categories">
+      <div class="category-card" style="--bg: url('images/anime.png')" onclick="selectCategory('Anime')">
+        <span>Anime</span>
+      </div>
+      <div class="category-card" style="--bg: url('images/games.png')" onclick="selectCategory('Games')">
+        <span>Games</span>
+      </div>
+      <div class="category-card" style="--bg: url('images/entertainment.png')" onclick="selectCategory('Entertainment')">
+        <span>Entertainment</span>
+      </div>
+      <div class="category-card" style="--bg: url('images/politics.png')" onclick="selectCategory('Politics')">
+        <span>Politics</span>
+      </div>
+      <div class="category-card" style="--bg: url('images/funny.png')" onclick="selectCategory('Funny')">
+        <span>Funny</span>
+      </div>
+      <div class="category-card add-your-own" onclick="openSubmitPoll()">
+        <span>➕ Add Your Own</span>
+      </div>
+    </section>
+
+    <!-- === POLL AREA === -->
+    <div id="poll"></div>
+
+    <!-- === SUBMIT FORM (HIDDEN) === -->
+    <div id="submit-form" style="display: none;">
+      <h2>➕ Submit a New Poll</h2>
+      <form onsubmit="submitPoll(event)">
+        <label>Category:
+          <select id="submit-category" required>
+            <option value="Anime">Anime</option>
+            <option value="Games">Games</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Politics">Politics</option>
+            <option value="Funny">Funny</option>
+          </select>
+        </label>
+        <label>Question:
+          <input type="text" id="submit-question" required maxlength="150">
+        </label>
+        <label>Options (one per line):
+          <textarea id="submit-options" rows="5" required></textarea>
+        </label>
+        <button type="submit" class="cta-button">Submit Poll</button>
+        <button type="button" class="poll-button" onclick="goHome()">Back</button>
+      </form>
+      <p>Your submission will be reviewed before being published.</p>
     </div>
   </main>
-
-  <!-- === POLL AREA === -->
-  <div id="poll"></div>
-
-  <!-- === SUBMIT FORM (HIDDEN) === -->
-  <div id="submit-form" style="display: none;">
-    <h2>➕ Submit a New Poll</h2>
-    <form onsubmit="submitPoll(event)">
-      <label>Category:
-        <select id="submit-category" required>
-          <option value="Anime">Anime</option>
-          <option value="Games">Games</option>
-          <option value="Entertainment">Entertainment</option>
-          <option value="Politics">Politics</option>
-          <option value="Funny">Funny</option>
-        </select>
-      </label>
-      <label>Question:
-        <input type="text" id="submit-question" required maxlength="150">
-      </label>
-      <label>Options (one per line):
-        <textarea id="submit-options" rows="5" required></textarea>
-      </label>
-      <button type="submit" class="cta-button">Submit Poll</button>
-      <button type="button" class="poll-button" onclick="goHome()">Back</button>
-    </form>
-    <p>Your submission will be reviewed before being published.</p>
-  </div>
 
   <!-- === ADSENSE STICKY FOOTER === -->
   <footer>
