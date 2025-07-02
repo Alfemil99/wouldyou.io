@@ -7,6 +7,9 @@ const socket = io("https://v-r-backend.onrender.com");
 let activeCategory = null;
 let activePollId = null;
 
+// === Farver til block poll style ===
+const colors = ["#B71C1C", "#8D6E63", "#616161", "#4CAF50", "#2196F3", "#FFC107", "#FF5722"];
+
 // === On Load: Direct Poll Link or Home ===
 window.addEventListener("DOMContentLoaded", () => {
   const path = window.location.pathname;
@@ -17,7 +20,6 @@ window.addEventListener("DOMContentLoaded", () => {
     showPoll();
     socket.emit("get-poll-by-id", { pollId });
   } else {
-    // Home: trending + random preview
     showHome();
     socket.emit("get-trending-polls");
     socket.emit("get-random-poll-preview");
@@ -107,7 +109,12 @@ socket.on("poll-data", (poll) => {
     <h2>${poll.question_text}</h2>
     <div class="poll-options">
       ${poll.options.map((opt, idx) => `
-        <button class="poll-option" id="option-${idx}" onclick="vote(${idx})">
+        <button 
+          class="poll-option" 
+          id="option-${idx}" 
+          onclick="vote(${idx})"
+          style="background-color: ${colors[idx % colors.length]}"
+        >
           <div class="progress-fill"></div>
           <span>${opt.text}</span>
         </button>
