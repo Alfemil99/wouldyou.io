@@ -10,6 +10,24 @@ let activePollId = null;
 // === Farver til block poll style ===
 const colors = ["#B71C1C", "#8D6E63", "#616161", "#4CAF50", "#2196F3", "#FFC107", "#FF5722"];
 
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+  toast.style.display = "block";
+  toast.style.opacity = "1";
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translate(-50%, 20px)";
+  }, 1500);
+
+  setTimeout(() => {
+    toast.style.display = "none";
+    toast.style.transform = "translate(-50%, 0)";
+  }, 2000);
+}
+
+
 // === On Load: Direct Poll Link or Home (query param version) ===
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
@@ -187,16 +205,19 @@ window.nextPoll = function () {
 // === Copy Link ===
 window.copyLink = function () {
   if (!activePollId) {
-    alert("⚠️ No poll loaded!");
+    showToast("⚠️ No poll loaded!");
     return;
   }
   const url = `${window.location.origin}/?poll=${activePollId}`;
+
   navigator.clipboard.writeText(url).then(() => {
-    alert("✅ Link copied!");
+    showToast("✅ Link copied!");
   }).catch(err => {
     console.error(err);
+    showToast("❌ Failed to copy link");
   });
 };
+
 
 // === Trending Polls ===
 socket.on("trending-polls", (polls) => {
