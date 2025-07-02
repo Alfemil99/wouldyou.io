@@ -6,6 +6,7 @@ const socket = io("https://v-r-backend.onrender.com");
 
 let activeCategory = null;
 let activePollId = null;
+let activePollQuestion = "";
 
 // === Farver til block poll style ===
 const colors = ["#B71C1C", "#8D6E63", "#616161", "#4CAF50", "#2196F3", "#FFC107", "#FF5722"];
