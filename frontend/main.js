@@ -28,7 +28,6 @@ function showToast(message) {
   }, 2000);
 }
 
-
 // === On Load: Direct Poll Link or Home (query param version) ===
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
@@ -49,6 +48,7 @@ window.addEventListener("DOMContentLoaded", () => {
 function hideAll() {
   document.querySelector(".trending").style.display = "none";
   document.querySelector(".random-poll").style.display = "none";
+  document.getElementById("modes").style.display = "none";
   document.getElementById("categories").style.display = "none";
   document.getElementById("poll").style.display = "none";
   document.getElementById("submit-form").style.display = "none";
@@ -63,7 +63,10 @@ function showHome() {
   hideAll();
   document.querySelector(".trending").style.display = "block";
   document.querySelector(".random-poll").style.display = "block";
-  document.getElementById("categories").style.display = "grid";
+  document.getElementById("modes").style.display = "grid";
+
+  socket.emit("get-trending-polls");
+  socket.emit("get-random-poll-preview");
 }
 
 function showSubmit() {
@@ -77,12 +80,25 @@ window.goHome = function () {
   window.history.pushState(null, "", `/`);
   activeCategory = null;
   activePollId = null;
-
-  // 🔥 NYT: hent trending og random preview igen!
-  socket.emit("get-trending-polls");
-  socket.emit("get-random-poll-preview");
 };
 
+// === Open Polls Mode ===
+window.openPolls = function () {
+  hideAll();
+  document.getElementById("categories").style.display = "grid";
+};
+
+// === Select Other Modes ===
+window.selectMode = function (mode) {
+  console.log(`🚀 Switching mode: ${mode}`);
+  if (mode === "quickpoll") {
+    alert("🚧 Quickpoll coming soon!");
+  } else if (mode === "wyr") {
+    alert("🚧 Would You Rather coming soon!");
+  } else if (mode === "spin") {
+    alert("🚧 Spin the Wheel coming soon!");
+  }
+};
 
 // === Select Category ===
 window.selectCategory = function (category) {
@@ -128,7 +144,6 @@ socket.on("poll-data", (poll) => {
   activePollId = poll._id;
   activePollQuestion = poll.question_text;
 
-  // ✅ Query param version
   window.history.pushState(null, "", `/?poll=${activePollId}`);
 
   pollDiv.innerHTML = `
@@ -208,7 +223,7 @@ window.nextPoll = function () {
   }
 };
 
-// Share
+// === Copy Link ===
 window.copyLink = function () {
   if (!activePollId) {
     showToast("⚠️ No poll loaded!");
@@ -237,7 +252,6 @@ window.copyLink = function () {
     });
   }
 };
-
 
 // === Trending Polls ===
 socket.on("trending-polls", (polls) => {

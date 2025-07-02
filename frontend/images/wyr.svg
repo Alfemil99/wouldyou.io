@@ -1,0 +1,25 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Top red half -->
+  <path 
+    d="M40,0 
+       H160 
+       a40,40 0 0 1 40,40 
+       V100 
+       H0 
+       V40 
+       a40,40 0 0 1 40,-40 Z"
+    fill="#e74c3c"
+  />
+  
+  <!-- Bottom blue half -->
+  <path 
+    d="M0,100 
+       H200 
+       V160 
+       a40,40 0 0 1 -40,40 
+       H40 
+       a40,40 0 0 1 -40,-40 
+       Z"
+    fill="#3b53db"
+  />
+</svg>

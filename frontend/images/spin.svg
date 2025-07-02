@@ -1,0 +1,13 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sektor 1 -->
+  <path d="M100,100 L200,100 A100,100 0 0,0 100,0 Z" fill="#64B5F6" />
+  <!-- Sektor 2 -->
+  <path d="M100,100 L100,0 A100,100 0 0,0 0,100 Z" fill="#81C784" />
+  <!-- Sektor 3 -->
+  <path d="M100,100 L0,100 A100,100 0 0,0 100,200 Z" fill="#FFF176" />
+  <!-- Sektor 4 -->
+  <path d="M100,100 L100,200 A100,100 0 0,0 200,100 Z" fill="#E57373" />
+
+  <!-- Ydre cirkel outline -->
+  <circle cx="100" cy="100" r="100" fill="none" stroke="#111" stroke-width="4"/>
+</svg>

@@ -43,8 +43,24 @@
       </div>
     </section>
 
-    <!-- === CATEGORY GRID === -->
-    <section id="categories" class="categories">
+    <!-- === MODES GRID === -->
+    <section id="modes" class="categories">
+      <div class="category-card" style="--bg: url('images/polls.svg')" onclick="openPolls()">
+        <span>Polls</span>
+      </div>
+      <div class="category-card" style="--bg: url('images/quickpoll.svg')" onclick="selectMode('quickpoll')">
+        <span>Quick Poll</span>
+      </div>
+      <div class="category-card" style="--bg: url('images/wyr.svg')" onclick="selectMode('wyr')">
+        <span>Would You Rather</span>
+      </div>
+      <div class="category-card" style="--bg: url('images/spin.svg')" onclick="selectMode('spin')">
+        <span>Spin the Wheel</span>
+      </div>
+    </section>
+
+    <!-- === CATEGORY GRID (vises kun når man vælger Polls) === -->
+    <section id="categories" class="categories" style="display: none;">
       <div class="category-card" style="--bg: url('images/anime.png')" onclick="selectCategory('Anime')">
         <span>Anime</span>
       </div>
@@ -108,7 +124,7 @@
 
   <!-- === TOAST === -->
   <div id="toast" style="display: none;"></div>
-  
+
   <!-- === MAIN JS === -->
   <script type="module" src="main.js"></script>
 </body>
