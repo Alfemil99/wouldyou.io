@@ -70,14 +70,18 @@ function showSubmit() {
   document.getElementById("submit-form").style.display = "block";
 }
 
-// === Go Home ===
 window.goHome = function () {
   showHome();
   document.body.classList.remove("voted");
   window.history.pushState(null, "", `/`);
   activeCategory = null;
   activePollId = null;
+
+  // 🔥 NYT: hent trending og random preview igen!
+  socket.emit("get-trending-polls");
+  socket.emit("get-random-poll-preview");
 };
+
 
 // === Select Category ===
 window.selectCategory = function (category) {
