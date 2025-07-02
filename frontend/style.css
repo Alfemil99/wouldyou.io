@@ -178,8 +178,8 @@ header .tagline {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center; /* Vertikalt centreret */
+  justify-content: center;  /* Vertikalt centreret */
+  align-items: center;      /* Horisontalt centreret */
   text-align: center;
   padding: 2rem 1rem;
 }
@@ -193,15 +193,17 @@ header .tagline {
 .poll-options {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center;     /* Centrer poll option knapper horisontalt */
   width: 100%;
   max-width: 600px;
+  margin: 0 auto;          /* Centrer containeren hvis parent ikke er flex */
 }
 
 .poll-option {
   position: relative;
-  height: 60px;
   width: 100%;
+  max-width: 600px;         /* Holder knapper smalle på store skærme */
+  height: 60px;
   margin-bottom: 12px;
   border: none;
   border-radius: 6px;
@@ -242,6 +244,7 @@ body.voted .poll-option:hover {
 /* === Poll Actions === */
 .poll-actions {
   display: flex;
+  justify-content: center; /* Centrer knapper horisontalt */
   gap: 1rem;
   margin-top: 2rem;
 }
