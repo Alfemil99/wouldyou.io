@@ -125,6 +125,7 @@ socket.on("poll-data", (poll) => {
 
   console.log("📥 Loaded poll-data:", poll);
   activePollId = poll._id;
+  activePollQuestion = poll.question_text;
 
   // ✅ Query param version
   window.history.pushState(null, "", `/?poll=${activePollId}`);
@@ -206,6 +207,7 @@ window.nextPoll = function () {
   }
 };
 
+// Share
 window.copyLink = function () {
   if (!activePollId) {
     showToast("⚠️ No poll loaded!");
@@ -213,28 +215,27 @@ window.copyLink = function () {
   }
 
   const url = `${window.location.origin}/?poll=${activePollId}`;
+  const text = activePollQuestion || "Check out this poll!";
 
   if (navigator.share) {
     navigator.share({
       title: "WouldYou.IO",
-      text: "Check out this poll!",
+      text: text,
       url: url
     }).then(() => {
       showToast("✅ Shared!");
     }).catch((err) => {
-      console.warn("Share failed:", err);
-      // Fallback hvis bruger annullerer
+      console.warn("Share cancelled:", err);
     });
   } else {
     navigator.clipboard.writeText(url).then(() => {
       showToast("✅ Link copied!");
     }).catch(err => {
       console.error(err);
-      showToast("❌ Failed to copy");
+      showToast("❌ Failed to copy link");
     });
   }
 };
-
 
 
 // === Trending Polls ===
