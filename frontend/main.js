@@ -206,21 +206,35 @@ window.nextPoll = function () {
   }
 };
 
-// === Copy Link ===
 window.copyLink = function () {
   if (!activePollId) {
     showToast("⚠️ No poll loaded!");
     return;
   }
+
   const url = `${window.location.origin}/?poll=${activePollId}`;
 
-  navigator.clipboard.writeText(url).then(() => {
-    showToast("✅ Link copied!");
-  }).catch(err => {
-    console.error(err);
-    showToast("❌ Failed to copy link");
-  });
+  if (navigator.share) {
+    navigator.share({
+      title: "WouldYou.IO",
+      text: "Check out this poll!",
+      url: url
+    }).then(() => {
+      showToast("✅ Shared!");
+    }).catch((err) => {
+      console.warn("Share failed:", err);
+      // Fallback hvis bruger annullerer
+    });
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast("✅ Link copied!");
+    }).catch(err => {
+      console.error(err);
+      showToast("❌ Failed to copy");
+    });
+  }
 };
+
 
 
 // === Trending Polls ===
