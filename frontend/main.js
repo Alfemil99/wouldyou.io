@@ -47,7 +47,7 @@ window.addEventListener("DOMContentLoaded", () => {
 // === Helpers ===
 function hideAll() {
   document.querySelector(".trending").style.display = "none";
-  document.querySelector(".random-poll").style.display = "none";
+  document.querySelector(".daily-poll").style.display = "none";
   document.getElementById("modes").style.display = "none";
   document.getElementById("categories").style.display = "none";
   document.getElementById("poll").style.display = "none";
@@ -62,11 +62,11 @@ function showPoll() {
 function showHome() {
   hideAll();
   document.querySelector(".trending").style.display = "block";
-  document.querySelector(".random-poll").style.display = "block";
+  document.querySelector(".daily-poll").style.display = "block";
   document.getElementById("modes").style.display = "grid";
 
   socket.emit("get-trending-polls");
-  socket.emit("get-random-poll-preview");
+  socket.emit("get-daily-poll");
 }
 
 function showSubmit() {
