@@ -223,6 +223,43 @@ window.nextPoll = function () {
   }
 };
 
+// === Vote on Daily Poll (on landing page) ===
+window.voteDaily = function (pollId, optionIndex) {
+  if (document.body.classList.contains("voted-daily")) {
+    console.log("⚠️ Already voted on daily poll");
+    return;
+  }
+
+  console.log(`🌞 Voting on daily ${pollId} | option ${optionIndex}`);
+  socket.emit("vote", { pollId: pollId, optionIndex });
+
+  // Handle the result only once
+  socket.once("vote-result", (result) => {
+    if (result.error) {
+      console.error("❌ Vote error:", result.error);
+      return;
+    }
+
+    const totalVotes = result.options.reduce((sum, opt) => sum + opt.votes, 0);
+
+    result.options.forEach((opt, idx) => {
+      const percent = totalVotes ? Math.round((opt.votes / totalVotes) * 100) : 0;
+      const fill = document.querySelector(`#daily-option-${idx} .progress-fill`);
+      const label = document.querySelector(`#daily-option-${idx} span`);
+
+      if (fill) fill.style.width = percent + "%";
+      if (label) label.innerText = `${opt.text}: ${percent}% (${opt.votes} votes)`;
+    });
+
+    document.body.classList.add("voted-daily");
+    document.querySelectorAll(`#daily-preview .poll-option`).forEach(btn => {
+      btn.disabled = true;
+      btn.style.cursor = "default";
+    });
+  });
+};
+
+
 // === Copy Link ===
 window.copyLink = function () {
   if (!activePollId) {
@@ -275,12 +312,38 @@ socket.on("trending-polls", (polls) => {
   });
 });
 
-// === Random Poll Preview ===
-socket.on("random-poll-preview", (poll) => {
-  document.getElementById("random-question").innerText = poll.question_text;
-  const randomLink = document.getElementById("random-link");
-  randomLink.onclick = () => loadPollById(poll._id);
+// === Daily Poll ===
+socket.on("daily-poll", (poll) => {
+  const dailyDiv = document.getElementById("daily-preview");
+
+  if (!poll) {
+    dailyDiv.innerHTML = "<p>No daily poll today!</p>";
+    return;
+  }
+
+  console.log("🌞 Loaded daily-poll:", poll);
+  const dailyId = poll._id;
+
+  dailyDiv.innerHTML = `
+    <h3>${poll.question_text}</h3>
+    <div class="poll-options">
+      ${poll.options.map((opt, idx) => `
+        <button 
+          class="poll-option" 
+          id="daily-option-${idx}" 
+          onclick="voteDaily('${dailyId}', ${idx})"
+          style="background-color: ${colors[idx % colors.length]}"
+        >
+          <div class="progress-fill"></div>
+          <span>${opt.text}</span>
+        </button>
+      `).join("")}
+    </div>
+  `;
+
+  document.body.classList.remove("voted-daily");
 });
+
 
 // === Submit Poll ===
 window.submitPoll = function (e) {
