@@ -48,6 +48,26 @@ app.use(cors({
   credentials: true
 }));
 
+// === Daily Poll logic ===
+let dailyPoll = null;
+let lastPickedDate = null;
+
+async function pickDailyPoll() {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  if (lastPickedDate === today && dailyPoll) return dailyPoll;
+
+  const polls = await pollsCollection.aggregate([
+    { $match: { approved: true } },
+    { $sample: { size: 1 } }
+  ]).toArray();
+
+  dailyPoll = polls[0] || null;
+  lastPickedDate = today;
+
+  console.log(`🌞 Picked new daily poll for ${today}: ${dailyPoll?._id}`);
+  return dailyPoll;
+}
+
 // === HTTP & Socket.IO ===
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -85,6 +105,14 @@ io.on("connection", (socket) => {
     socket.emit("poll-data", poll);
   });
 
+  // === Get daily poll ===
+  socket.on("get-daily-poll", async () => {
+    if (!pollsCollection) return;
+
+    const poll = await pickDailyPoll();
+    socket.emit("daily-poll", poll);
+  });
+
   // === Get poll by ID ===
   socket.on("get-poll-by-id", async ({ pollId }) => {
     if (!pollsCollection) return;
@@ -120,20 +148,6 @@ io.on("connection", (socket) => {
 
     console.log(`🔥 Sending trending polls: ${trending.length}`);
     socket.emit("trending-polls", trending);
-  });
-
-  // === Get random poll preview ===
-  socket.on("get-random-poll-preview", async () => {
-    if (!pollsCollection) return;
-
-    const polls = await pollsCollection.aggregate([
-      { $match: { approved: true } },
-      { $sample: { size: 1 } }
-    ]).toArray();
-
-    const poll = polls[0] || null;
-    console.log("🎲 Sending random preview:", poll?._id);
-    socket.emit("random-poll-preview", poll);
   });
 
   // === Submit poll ===
