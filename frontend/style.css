@@ -204,6 +204,11 @@ header .tagline {
   word-break: break-word;
 }
 
+.daily-poll h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
 
 .poll-options {
   display: flex;
