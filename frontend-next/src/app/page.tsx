@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useModeStore } from "@/lib/useModeStore";
 
@@ -13,15 +14,14 @@ import Poll from "@/components/Poll";
 import QuickPoll from "@/components/QuickPoll";
 import CategoriesGrid from "@/components/CategoriesGrid";
 
-// Dynamic Spin to skip SSR window error
 const SpinTheWheel = dynamic(() => import("@/components/SpinTheWheel"), { ssr: false });
 
-export default function HomePage() {
+function HomePageInner() {
   const searchParams = useSearchParams();
   const pollId = searchParams.get("poll");
   const quickPollId = searchParams.get("quickpoll");
-  const spinId = searchParams.get("id");  // 👈 Korrekt param navn!
-  const mode = searchParams.get("mode");  // 👈 Fanger mode
+  const spinId = searchParams.get("id");
+  const mode = searchParams.get("mode");
 
   const { activeMode } = useModeStore();
 
@@ -31,7 +31,7 @@ export default function HomePage() {
         <Poll />
       ) : quickPollId || activeMode === "quickpoll" ? (
         <QuickPoll />
-      ) : spinId || mode === "spin" || activeMode === "spin" ? (   // 👈 MATCH spinId ELLER ?mode=spin
+      ) : spinId || mode === "spin" || activeMode === "spin" ? (
         <SpinTheWheel />
       ) : activeMode === "polls" ? (
         <CategoriesGrid />
@@ -52,5 +52,13 @@ export default function HomePage() {
         </>
       )}
     </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomePageInner />
+    </Suspense>
   );
 }

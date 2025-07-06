@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useModeStore } from "@/lib/useModeStore";
-import Link from "next/link";
 import Image from "next/image";
 
 export default function Header() {
