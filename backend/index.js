@@ -244,12 +244,12 @@ io.on("connection", (socket) => {
   socket.on("submit-spinwheel", async ({ items }) => {
     if (!spinwheelsCollection) return;
 
-    if (!Array.isArray(items) || items.length < 2 || items.length > 12) {
+    if (!Array.isArray(items) || items.length < 2 || items.length > 20) {
       console.warn(`⚠️ Invalid spinwheel items:`, items);
       return;
     }
 
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h TTL
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1h TTL
 
     const newWheel = {
       items,
@@ -258,9 +258,13 @@ io.on("connection", (socket) => {
     };
 
     const result = await spinwheelsCollection.insertOne(newWheel);
+
     console.log(`🎡 SpinWheel created: ${result.insertedId}`);
+    console.log(`🔗 Share link: https://wouldyou.io/spin?id=${result.insertedId}`);
+
     socket.emit("spinwheel-created", { id: result.insertedId });
   });
+
 
   socket.on("get-spin-by-id", async ({ spinId }) => {
     if (!spinwheelsCollection) return;

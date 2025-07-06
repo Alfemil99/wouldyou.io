@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useModeStore } from "@/lib/useModeStore";
 
-import dynamic from "next/dynamic"; // 👈 Add this!
+import dynamic from "next/dynamic";
 
 import Hero from "@/components/Hero";
 import TrendingPolls from "@/components/TrendingPolls";
@@ -13,16 +13,15 @@ import Poll from "@/components/Poll";
 import QuickPoll from "@/components/QuickPoll";
 import CategoriesGrid from "@/components/CategoriesGrid";
 
-// 👇 Wrap SpinTheWheel in dynamic with ssr:false
-const SpinTheWheel = dynamic(() => import("@/components/SpinTheWheel"), {
-  ssr: false,
-});
+// Dynamic Spin to skip SSR window error
+const SpinTheWheel = dynamic(() => import("@/components/SpinTheWheel"), { ssr: false });
 
 export default function HomePage() {
   const searchParams = useSearchParams();
   const pollId = searchParams.get("poll");
   const quickPollId = searchParams.get("quickpoll");
-  const spinId = searchParams.get("spin");
+  const spinId = searchParams.get("id");  // 👈 Korrekt param navn!
+  const mode = searchParams.get("mode");  // 👈 Fanger mode
 
   const { activeMode } = useModeStore();
 
@@ -32,38 +31,21 @@ export default function HomePage() {
         <Poll />
       ) : quickPollId || activeMode === "quickpoll" ? (
         <QuickPoll />
-      ) : spinId || activeMode === "spin" ? (
+      ) : spinId || mode === "spin" || activeMode === "spin" ? (   // 👈 MATCH spinId ELLER ?mode=spin
         <SpinTheWheel />
       ) : activeMode === "polls" ? (
         <CategoriesGrid />
       ) : (
         <>
-          {/* Hero intro */}
           <Hero />
-
-          {/* 3-column Dashboard */}
           <section className="w-full max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8 items-start justify-items-center">
-            {/* Venstre: Trending Polls */}
-            <section
-              className="w-full max-w-[350px] mx-auto"
-              style={{ minHeight: "300px" }}
-            >
+            <section className="w-full max-w-[350px] mx-auto" style={{ minHeight: "300px" }}>
               <TrendingPolls />
             </section>
-
-            {/* Midten: Modes */}
-            <section
-              className="w-full max-w-[350px] mx-auto"
-              style={{ minHeight: "300px" }}
-            >
+            <section className="w-full max-w-[350px] mx-auto" style={{ minHeight: "300px" }}>
               <ModesGrid />
             </section>
-
-            {/* Højre: Daily Poll */}
-            <section
-              className="w-full max-w-[350px] mx-auto"
-              style={{ minHeight: "300px" }}
-            >
+            <section className="w-full max-w-[350px] mx-auto" style={{ minHeight: "300px" }}>
               <DailyPoll />
             </section>
           </section>
