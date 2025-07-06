@@ -42,7 +42,15 @@ export default function CategoriesGrid() {
           <div
             key={cat.name}
             onClick={() => handleClick(cat.name)}
-            className="relative w-60 h-60 rounded-2xl overflow-hidden cursor-pointer group border border-white/20 bg-white/10 backdrop-blur-md transition-all hover:scale-105 hover:border-primary hover:shadow-lg"
+            className="
+            relative
+            w-full aspect-square max-w-full
+            sm:max-w-[12rem]
+            md:max-w-[15rem]
+            rounded-2xl overflow-hidden cursor-pointer group
+            border border-white/20 bg-white/10 backdrop-blur-md
+            transition-all hover:scale-105 hover:border-primary hover:shadow-lg
+            "
           >
             <Image
               src={cat.image}

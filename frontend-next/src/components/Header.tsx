@@ -16,30 +16,36 @@ export default function Header() {
   ];
 
   return (
-    <header className="w-full sticky top-0 z-50">
+    <header className="w-full sticky top-0 z-50 overflow-x-hidden">
       {/* Main Navbar */}
-      <div className="navbar bg-base-100 shadow">
+      <div className="navbar bg-base-100 shadow container mx-auto px-4">
         <div className="flex-1">
           <button
             onClick={() => {
               router.push("/");
               resetMode();
             }}
-            className="btn btn-ghost normal-case text-xl"
+            className="btn btn-ghost normal-case text-lg md:text-xl"
           >
             WOULDYOU.IO
           </button>
         </div>
 
-        <div className="flex-none flex gap-2">
+        <div className="flex-none flex gap-1 flex-wrap justify-end">
           <button
             onClick={() => {
               router.push("/?mode=polls");
               setMode("polls");
             }}
-            className="btn btn-ghost p-2"
+            className="btn btn-ghost p-1 md:p-2"
           >
-            <Image src="/images/polls.svg" alt="Polls" width={28} height={28} />
+            <Image
+              src="/images/polls.svg"
+              alt="Polls"
+              width={20}
+              height={20}
+              className="md:w-[28px] md:h-[28px]"
+            />
           </button>
 
           <button
@@ -47,9 +53,15 @@ export default function Header() {
               router.push("/?mode=quickpoll");
               setMode("quickpoll");
             }}
-            className="btn btn-ghost p-2"
+            className="btn btn-ghost p-1 md:p-2"
           >
-            <Image src="/images/quickpoll.svg" alt="Quickpoll" width={28} height={28} />
+            <Image
+              src="/images/quickpoll.svg"
+              alt="Quickpoll"
+              width={20}
+              height={20}
+              className="md:w-[28px] md:h-[28px]"
+            />
           </button>
 
           <button
@@ -57,9 +69,15 @@ export default function Header() {
               router.push("/?mode=spin");
               setMode("spin");
             }}
-            className="btn btn-ghost p-2"
+            className="btn btn-ghost p-1 md:p-2"
           >
-            <Image src="/images/spin.svg" alt="Spin" width={28} height={28} />
+            <Image
+              src="/images/spin.svg"
+              alt="Spin"
+              width={20}
+              height={20}
+              className="md:w-[28px] md:h-[28px]"
+            />
           </button>
 
           <button
@@ -67,9 +85,15 @@ export default function Header() {
               router.push("/?mode=wyr");
               setMode("wyr");
             }}
-            className="btn btn-ghost p-2"
+            className="btn btn-ghost p-1 md:p-2"
           >
-            <Image src="/images/wyr.svg" alt="Would You Rather" width={28} height={28} />
+            <Image
+              src="/images/wyr.svg"
+              alt="Would You Rather"
+              width={20}
+              height={20}
+              className="md:w-[28px] md:h-[28px]"
+            />
           </button>
         </div>
       </div>
@@ -81,8 +105,9 @@ export default function Header() {
             <span className="opacity-70">{kpi.title}:</span>
             <span className="font-bold">{kpi.value}</span>
             <span
-              className={`text-xs ${kpi.change.startsWith("+") ? "text-green-400" : "text-red-400"
-                }`}
+              className={`text-xs ${
+                kpi.change.startsWith("+") ? "text-green-400" : "text-red-400"
+              }`}
             >
               {kpi.change}
             </span>
