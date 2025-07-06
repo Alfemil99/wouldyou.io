@@ -1,132 +1,79 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import socket from "@/lib/socket";
-import { useModeStore } from "@/lib/useModeStore";
+import { useState } from "react";
+import { Wheel } from "react-custom-roulette";
 
 export default function SpinTheWheel() {
-  const [items, setItems] = useState<string[]>([]);
-  const [result, setResult] = useState<string | null>(null);
-  const [newItem, setNewItem] = useState("");
-  const [createdId, setCreatedId] = useState<string | null>(null);
+  const [options, setOptions] = useState<string[]>([]);
+  const [newOption, setNewOption] = useState("");
+  const [mustSpin, setMustSpin] = useState(false);
+  const [prizeNumber, setPrizeNumber] = useState(0);
 
-  const searchParams = useSearchParams();
-  const spinId = searchParams.get("spin");
-  const { resetMode } = useModeStore();
+  const data = options.map((opt) => ({ option: opt }));
 
-  // Load existing wheel
-  useEffect(() => {
-    if (spinId) {
-      console.log(`🔗 Loading SpinWheel: ${spinId}`);
-      socket.emit("get-spin-by-id", { spinId });
-    }
-
-    socket.on("spinwheel-data", (data) => {
-      if (data?.items) {
-        console.log("🎡 Loaded SpinWheel:", data);
-        setItems(data.items);
-        setCreatedId(data._id);
-      }
-    });
-
-    return () => {
-      socket.off("spinwheel-data");
-    };
-  }, [spinId]);
-
-  const addItem = () => {
-    const trimmed = newItem.trim();
-    if (trimmed && items.length < 12) {
-      setItems([...items, trimmed]);
-      setNewItem("");
+  const handleAddOption = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newOption.trim();
+    if (trimmed && options.length < 20) {
+      setOptions([...options, trimmed]);
+      setNewOption("");
     }
   };
 
-  const handleSpin = () => {
-    if (items.length < 2) {
-      alert("Add at least 2 items!");
-      return;
-    }
-    const pick = items[Math.floor(Math.random() * items.length)];
-    setResult(pick);
-  };
-
-  const handleShare = () => {
-    if (items.length < 2) {
-      alert("Add at least 2 items before sharing.");
-      return;
-    }
-
-    socket.emit("submit-spinwheel", { items });
-
-    socket.once("spinwheel-created", ({ id }) => {
-      console.log(`🎉 SpinWheel saved: ${id}`);
-      const url = `${window.location.origin}/?spin=${id}`;
-      navigator.clipboard.writeText(url).then(() => {
-        alert(`✅ Link copied! ${url}`);
-        setCreatedId(id);
-      });
-    });
-  };
-
-  const goBack = () => {
-    resetMode();
-    window.history.pushState(null, "", "/");
+  const handleSpinClick = () => {
+    if (options.length === 0) return;
+    const newPrizeNumber = Math.floor(Math.random() * options.length);
+    setPrizeNumber(newPrizeNumber);
+    setMustSpin(true);
   };
 
   return (
-    <section className="py-8">
-      <button
-        onClick={goBack}
-        className="mb-4 px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
-      >
-        ← Back
-      </button>
-
+    <section className="w-full max-w-md mx-auto text-center">
       <h2 className="text-2xl font-bold mb-4">🎡 Spin the Wheel</h2>
 
-      <div className="flex gap-2 mb-4">
+      <form onSubmit={handleAddOption} className="flex gap-2 mb-4">
         <input
           type="text"
-          placeholder="Add item..."
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          className="border p-2 rounded w-full"
+          value={newOption}
+          onChange={(e) => setNewOption(e.target.value)}
+          placeholder="Indtast en valgmulighed"
+          className="input input-bordered flex-grow"
         />
-        <button
-          onClick={addItem}
-          className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Add
+        <button type="submit" className="btn btn-primary">
+          Tilføj
         </button>
-      </div>
+      </form>
 
-      <ul className="mb-4">
-        {items.map((item, idx) => (
-          <li key={idx} className="border p-2 mb-1 rounded">
-            {item}
-          </li>
-        ))}
-      </ul>
+      {options.length > 0 && (
+        <>
+          <Wheel
+            mustStartSpinning={mustSpin}
+            prizeNumber={prizeNumber}
+            data={data}
+            backgroundColors={["#FFDEDE", "#FFF5DE", "#DEFFEB", "#DEF1FF"]}
+            textColors={["#000"]}
+            onStopSpinning={() => setMustSpin(false)}
+          />
 
-      <div className="flex gap-4 mb-4">
-        <button
-          onClick={handleSpin}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          🎯 Spin
-        </button>
-        <button
-          onClick={handleShare}
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-        >
-          🔗 Share Wheel
-        </button>
-      </div>
+          <button
+            onClick={handleSpinClick}
+            className="btn btn-accent mt-4"
+          >
+            SPIN!
+          </button>
 
-      {result && (
-        <p className="text-xl font-bold">🎉 Result: {result}</p>
+          {!mustSpin && options[prizeNumber] && (
+            <div className="mt-4 text-xl font-bold">
+              🎉 Vinderen er: {options[prizeNumber]}
+            </div>
+          )}
+        </>
+      )}
+
+      {options.length === 0 && (
+        <p className="text-neutral-content">
+          Tilføj op til 20 valgmuligheder for at dreje hjulet!
+        </p>
       )}
     </section>
   );
