@@ -52,19 +52,19 @@ export default function Header() {
             router.push("/");
             resetMode();
           }}
-          className="btn btn-ghost normal-case text-lg md:text-xl"
+          className="btn btn-ghost normal-case text-base sm:text-lg md:text-xl"
         >
           WOULDYOU.IO
         </button>
 
         {/* Mode icons */}
-        <div className="flex items-center gap-2 flex-nowrap overflow-x-auto">
+        <div className="flex items-center gap-1 sm:gap-2 flex-nowrap overflow-hidden w-auto">
           <button
             onClick={() => {
               router.push("/?mode=polls");
               setMode("polls");
             }}
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-xs shrink"
           >
             <Image
               src="/images/polls.svg"
@@ -78,7 +78,7 @@ export default function Header() {
               router.push("/?mode=quickpoll");
               setMode("quickpoll");
             }}
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-xs shrink"
           >
             <Image
               src="/images/quickpoll.svg"
@@ -92,7 +92,7 @@ export default function Header() {
               router.push("/?mode=spin");
               setMode("spin");
             }}
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-xs shrink"
           >
             <Image
               src="/images/spin.svg"
@@ -106,7 +106,7 @@ export default function Header() {
               router.push("/?mode=wyr");
               setMode("wyr");
             }}
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-xs shrink"
           >
             <Image
               src="/images/wyr.svg"

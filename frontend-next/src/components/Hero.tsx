@@ -29,21 +29,20 @@ export default function Hero() {
           🚀 Start Polling Now
         </button>
 
-        {/* === Small feature cards === */}
         <div className="mt-2 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 w-full">
-          <div className="card bg-base-200 shadow rounded-box p-4 max-w-[220px] w-full sm:w-auto">
+          <div className="card bg-base-200 shadow rounded-box p-4 max-w-[220px] w-full sm:w-auto mx-auto">
             <h3 className="text-lg font-semibold mb-2">💡 Create Polls</h3>
             <p className="text-sm opacity-70">
               Make quick questions for your audience or friends. Share them in seconds.
             </p>
           </div>
-          <div className="card bg-base-200 shadow rounded-box p-4 max-w-[220px] w-full sm:w-auto">
+          <div className="card bg-base-200 shadow rounded-box p-4 max-w-[220px] w-full sm:w-auto mx-auto">
             <h3 className="text-lg font-semibold mb-2">📈 Live Results</h3>
             <p className="text-sm opacity-70">
               Watch votes come in real-time and see trends and insights instantly.
             </p>
           </div>
-          <div className="card bg-base-200 shadow rounded-box p-4 max-w-[220px] w-full sm:w-auto">
+          <div className="card bg-base-200 shadow rounded-box p-4 max-w-[220px] w-full sm:w-auto mx-auto">
             <h3 className="text-lg font-semibold mb-2">🔗 Share Anywhere</h3>
             <p className="text-sm opacity-70">
               Copy a link and spread your poll on social media, chat or anywhere.
