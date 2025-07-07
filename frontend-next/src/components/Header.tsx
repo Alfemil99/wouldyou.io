@@ -12,6 +12,16 @@ type KPI = {
   change: string;
 };
 
+type KPIUpdate = {
+  votes: number;
+  votesChange: number;
+  polls: number;
+  pollsChange: number;
+  users: number;
+  usersChange: number;
+};
+
+
 export default function Header() {
   const router = useRouter();
   const { setMode, resetMode } = useModeStore();
@@ -23,11 +33,11 @@ export default function Header() {
   ]);
 
   useEffect(() => {
-    const handleKpiUpdate = (data: { votes: number; polls: number; users: number }) => {
+    const handleKpiUpdate = (data: KPIUpdate) => {
       setKpis([
-        { title: "VOTES", value: data.votes.toLocaleString(), change: "+5%" },
-        { title: "POLLS", value: data.polls.toString(), change: "+2%" },
-        { title: "USERS", value: data.users.toString(), change: "+8%" },
+        { title: "VOTES", value: data.votes.toLocaleString(), change: `${data.votesChange.toFixed(1)}%` },
+        { title: "POLLS", value: data.polls.toString(), change: `${data.pollsChange.toFixed(1)}%` },
+        { title: "USERS", value: data.users.toString(), change: "" }, // Ingen change for users
       ]);
     };
 
