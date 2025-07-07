@@ -5,17 +5,11 @@
   </clipPath>
 
   <!-- Top block: Yellow -->
-  <rect x="0" y="0" width="200" height="65" fill="#F1C40F" clip-path="url(#roundedBox)" />
-
-  <!-- Separator -->
-  <rect x="0" y="65" width="200" height="5" fill="#111" clip-path="url(#roundedBox)" />
+  <rect x="0" y="0" width="200" height="65" fill="#22c55e" clip-path="url(#roundedBox)" />
 
   <!-- Middle block: Black -->
-  <rect x="0" y="70" width="200" height="60" fill="#111" clip-path="url(#roundedBox)" />
-
-  <!-- Separator -->
-  <rect x="0" y="130" width="200" height="5" fill="#111" clip-path="url(#roundedBox)" />
+  <rect x="0" y="65" width="200" height="70" fill="#3b82f6" clip-path="url(#roundedBox)" />
 
   <!-- Bottom block: Brown -->
-  <rect x="0" y="135" width="200" height="65" fill="#8B4513" clip-path="url(#roundedBox)" />
+  <rect x="0" y="135" width="200" height="65" fill="#8b5cf6" clip-path="url(#roundedBox)" />
 </svg>

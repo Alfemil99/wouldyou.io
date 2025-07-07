@@ -1,21 +1,15 @@
 <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <!-- Rund kant baggrund -->
+  <!-- Rounded background clip -->
   <clipPath id="roundedBox">
     <rect x="0" y="0" width="200" height="200" rx="20" ry="20"/>
   </clipPath>
 
-  <!-- Top blok -->
-  <rect x="0" y="0" width="200" height="65" fill="#B71C1C" clip-path="url(#roundedBox)" />
-  
-  <!-- Separator -->
-  <rect x="0" y="65" width="200" height="5" fill="#111" clip-path="url(#roundedBox)" />
+  <!-- Top block: Yellow -->
+  <rect x="0" y="0" width="200" height="65" fill="#ef4444" clip-path="url(#roundedBox)" />
 
-  <!-- Mid blok -->
-  <rect x="0" y="70" width="200" height="60" fill="#8D6E63" clip-path="url(#roundedBox)" />
-  
-  <!-- Separator -->
-  <rect x="0" y="130" width="200" height="5" fill="#111" clip-path="url(#roundedBox)" />
+  <!-- Middle block: Black -->
+  <rect x="0" y="65" width="200" height="70" fill="#f97316" clip-path="url(#roundedBox)" />
 
-  <!-- Bund blok -->
-  <rect x="0" y="135" width="200" height="65" fill="#616161" clip-path="url(#roundedBox)" />
+  <!-- Bottom block: Brown -->
+  <rect x="0" y="135" width="200" height="65" fill="#eab308" clip-path="url(#roundedBox)" />
 </svg>

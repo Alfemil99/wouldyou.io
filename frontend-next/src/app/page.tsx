@@ -44,14 +44,14 @@ function HomePageInner() {
             <Hero />
           </div>
 
-          <section className="w-full max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8 items-start justify-items-center">
-            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[300px]">
+          <section className="w-full max-w-7xl mx-auto px-4 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-start justify-items-center">
+            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[250px]">
               <TrendingPolls />
             </section>
-            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[300px]">
+            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[250px]">
               <ModesGrid />
             </section>
-            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[300px]">
+            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[250px]">
               <DailyPoll />
             </section>
           </section>

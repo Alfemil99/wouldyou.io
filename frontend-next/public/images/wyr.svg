@@ -8,7 +8,7 @@
        H0 
        V40 
        a40,40 0 0 1 40,-40 Z"
-    fill="#e74c3c"
+    fill="#ef4444"
   />
   
   <!-- Bottom blue half -->
@@ -20,6 +20,6 @@
        H40 
        a40,40 0 0 1 -40,-40 
        Z"
-    fill="#3b53db"
+    fill="#3b82f6"
   />
 </svg>
