@@ -43,21 +43,7 @@ async function connectDB() {
 }
 
 async function getKPIStats() {
-  // Total polls now
-  const totalPollsNow = await pollsCollection.countDocuments({ approved: true });
-
-  // Total polls 24h ago
-  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const totalPollsPast = await pollsCollection.countDocuments({
-    approved: true,
-    created_at: { $lte: twentyFourHoursAgo }
-  });
-
-  const percentChangePolls = totalPollsPast === 0 
-    ? 100
-    : ((totalPollsNow - totalPollsPast) / totalPollsPast) * 100;
-
-  // Total votes (du kan ikke få % change uden votes_log)
+  // Total votes fra polls (approved)
   const votesAgg = await pollsCollection.aggregate([
     { $match: { approved: true } },
     { $unwind: "$options" },
@@ -65,18 +51,19 @@ async function getKPIStats() {
   ]).toArray();
   const totalVotes = votesAgg[0]?.totalVotes || 0;
 
-  // Live users
+  // Total polls (approved)
+  const totalPolls = await pollsCollection.countDocuments({ approved: true });
+
+  // Aktive brugere (live websocket connections)
   const totalUsers = io.engine.clientsCount;
 
   return {
     votes: totalVotes,
-    votesChange: 0, // Ikke muligt uden votes_log
-    polls: totalPollsNow,
-    pollsChange: percentChangePolls,
-    users: totalUsers,
-    usersChange: 0
+    polls: totalPolls,
+    users: totalUsers
   };
 }
+
 
 
 

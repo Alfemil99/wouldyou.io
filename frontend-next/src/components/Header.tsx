@@ -9,16 +9,12 @@ import socket from "@/lib/socket";
 type KPI = {
   title: string;
   value: string;
-  change: string;
 };
 
 type KPIUpdate = {
   votes: number;
-  votesChange: number;
   polls: number;
-  pollsChange: number;
   users: number;
-  usersChange: number;
 };
 
 
@@ -27,17 +23,17 @@ export default function Header() {
   const { setMode, resetMode } = useModeStore();
 
   const [kpis, setKpis] = useState<KPI[]>([
-    { title: "VOTES", value: "0", change: "+0%" },
-    { title: "POLLS", value: "0", change: "+0%" },
-    { title: "USERS", value: "0", change: "+0%" },
+    { title: "VOTES", value: "0"},
+    { title: "POLLS", value: "0"},
+    { title: "USERS", value: "0"},
   ]);
 
   useEffect(() => {
     const handleKpiUpdate = (data: KPIUpdate) => {
       setKpis([
-        { title: "VOTES", value: data.votes.toLocaleString(), change: `${data.votesChange.toFixed(1)}%` },
-        { title: "POLLS", value: data.polls.toString(), change: `${data.pollsChange.toFixed(1)}%` },
-        { title: "USERS", value: data.users.toString(), change: "" }, // Ingen change for users
+        { title: "VOTES", value: data.votes.toLocaleString() },
+        { title: "POLLS", value: data.polls.toString() },
+        { title: "USERS", value: data.users.toString() },
       ]);
     };
 
@@ -136,13 +132,6 @@ export default function Header() {
           <div key={kpi.title} className="flex items-baseline gap-1">
             <span className="opacity-70">{kpi.title}:</span>
             <span className="font-bold">{kpi.value}</span>
-            <span
-              className={`text-xs ${
-                kpi.change.startsWith("+") ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              {kpi.change}
-            </span>
           </div>
         ))}
       </div>
