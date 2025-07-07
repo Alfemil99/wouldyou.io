@@ -1,22 +1,45 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useModeStore } from "@/lib/useModeStore";
 import Image from "next/image";
+import socket from "@/lib/socket";
+
+type KPI = {
+  title: string;
+  value: string;
+  change: string;
+};
 
 export default function Header() {
   const router = useRouter();
   const { setMode, resetMode } = useModeStore();
 
-  const kpis = [
-    { title: "VOTES", value: "1,234", change: "+5%" },
-    { title: "POLLS", value: "12", change: "+2%" },
-    { title: "USERS", value: "350", change: "+8%" },
-  ];
+  const [kpis, setKpis] = useState<KPI[]>([
+    { title: "VOTES", value: "0", change: "+0%" },
+    { title: "POLLS", value: "0", change: "+0%" },
+    { title: "USERS", value: "0", change: "+0%" },
+  ]);
+
+  useEffect(() => {
+    const handleKpiUpdate = (data: { votes: number; polls: number; users: number }) => {
+      setKpis([
+        { title: "VOTES", value: data.votes.toLocaleString(), change: "+5%" },
+        { title: "POLLS", value: data.polls.toString(), change: "+2%" },
+        { title: "USERS", value: data.users.toString(), change: "+8%" },
+      ]);
+    };
+
+    socket.on("kpi-update", handleKpiUpdate);
+    return () => {
+      socket.off("kpi-update", handleKpiUpdate);
+    };
+  }, []);
 
   return (
     <header className="w-full sticky top-0 z-50 overflow-x-hidden">
-      {/* Main Navbar */}
+      {/* === Navbar === */}
       <div className="navbar w-full bg-base-100 shadow px-4 justify-between">
         <div className="flex-1">
           <button
@@ -97,7 +120,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Slim horizontal KPI Bar */}
+      {/* === Slim horizontal KPI Bar === */}
       <div className="flex flex-wrap justify-center items-center gap-4 px-4 py-1 bg-base-200 text-xs shadow overflow-x-auto whitespace-nowrap">
         {kpis.map((kpi) => (
           <div key={kpi.title} className="flex items-baseline gap-1">

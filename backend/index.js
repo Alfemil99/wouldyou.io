@@ -42,6 +42,30 @@ async function connectDB() {
   }
 }
 
+async function getKPIStats() {
+  // 1) Samlede votes fra polls
+  const votesAgg = await pollsCollection.aggregate([
+    { $match: { approved: true } },
+    { $unwind: "$options" },
+    { $group: { _id: null, totalVotes: { $sum: "$options.votes" } } },
+  ]).toArray();
+  const totalVotes = votesAgg[0]?.totalVotes || 0;
+
+  // 2) Samlede polls fra polls
+  const totalPolls = await pollsCollection.countDocuments({ approved: true });
+
+  // 3) Aktive brugere
+  const totalUsers = io.engine.clientsCount;
+
+  return {
+    votes: totalVotes,
+    polls: totalPolls,
+    users: totalUsers,
+  };
+}
+
+
+
 // === Express setup ===
 const app = express();
 app.use(express.json());
@@ -86,6 +110,8 @@ const io = new Server(server, {
     credentials: true
   }
 });
+
+// === Handlers ===
 
 io.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
@@ -307,10 +333,29 @@ io.on("connection", (socket) => {
     socket.emit("spinwheel-data", wheel || null);
   });
 
+  // === Send KPI stats hver 5. sekund ===
+  const kpiInterval = setInterval(async () => {
+    const stats = await getKPIStats();
+    io.emit("kpi-update", stats);
+    console.log(`📊 Sent KPI update:`, stats);
+  }, 5000);
+
   socket.on("disconnect", () => {
     console.log(`❌ Client disconnected: ${socket.id}`);
+    if (io.engine.clientsCount === 0) {
+      clearInterval(kpiInterval);
+    }
   });
+
 });
+
+
+// ✅ === GLOBALT INTERVAL ===
+setInterval(async () => {
+  const stats = await getKPIStats();
+  io.emit("kpi-update", stats);
+  console.log(`📊 Sent KPI update:`, stats);
+}, 5000);
 
 // === Health check ===
 app.get("/", (req, res) => {
