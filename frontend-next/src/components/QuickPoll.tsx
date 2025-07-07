@@ -14,6 +14,7 @@ interface QuickPollData {
   _id?: string;
   question_text: string;
   options: PollOption[];
+  expiresAt?: string; // 👈 husk at have denne i din backend!
 }
 
 const colors = [
@@ -29,11 +30,13 @@ const colors = [
 export default function QuickPoll() {
   const [poll, setPoll] = useState<QuickPollData | null>(null);
   const [voted, setVoted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   const searchParams = useSearchParams();
   const quickPollId = searchParams.get("quickpoll");
   const { resetMode } = useModeStore();
 
+  // Join room, load poll & handle updates
   useEffect(() => {
     if (quickPollId) {
       socket.emit("join-quickpoll", { pollId: quickPollId });
@@ -50,6 +53,26 @@ export default function QuickPoll() {
       socket.off("quickpoll-data");
     };
   }, [quickPollId]);
+
+  // Countdown timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (poll?.expiresAt) {
+      const expiresAt = new Date(poll.expiresAt).getTime();
+
+      const update = () => {
+        const now = Date.now();
+        const diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
+        setTimeLeft(diff);
+      };
+
+      update();
+      interval = setInterval(update, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [poll]);
 
   const handleVote = (index: number) => {
     if (!poll || voted) return;
@@ -77,7 +100,19 @@ export default function QuickPoll() {
         <button onClick={goBack} className="btn btn-sm btn-ghost mb-4">
           ← Back
         </button>
-        <h2 className="text-2xl font-bold mb-6 text-center">{poll.question_text}</h2>
+
+        <h2 className="text-2xl font-bold mb-2 text-center">{poll.question_text}</h2>
+
+        {poll.expiresAt && timeLeft > 0 && (
+          <div className="text-center mb-6">
+            <span className="font-semibold">⏳ Ends in: </span>
+            <span className="countdown text-xl">
+              <span style={{ "--value": Math.floor(timeLeft / 60) } as React.CSSProperties} />m
+              :
+              <span style={{ "--value": timeLeft % 60 } as React.CSSProperties} />s
+            </span>
+          </div>
+        )}
 
         <div className="flex flex-col gap-4">
           {poll.options.map((opt, idx) => (

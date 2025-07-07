@@ -104,7 +104,6 @@ export default function QuickPollForm() {
           </div>
         )}
 
-
         <div className="form-control mb-6">
           <label className="label">
             <span className="label-text">Expires after (minutes)</span>
