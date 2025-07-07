@@ -35,7 +35,7 @@ export default function QuickPollForm() {
     socket.once("quickpoll-created", ({ id }) => {
       const url = `${window.location.origin}/?quickpoll=${id}`;
       navigator.clipboard.writeText(url).then(() => {
-        alert(`✅ QuickPoll created!\nLink copied to clipboard:\n${url}`);
+        alert(`✅ QuickPoll created!\nLink copied:\n${url}`);
         resetMode();
         window.location.href = `/?quickpoll=${id}`;
       });
@@ -43,59 +43,86 @@ export default function QuickPollForm() {
   };
 
   return (
-    <section className="py-8">
-      <h2 className="text-3xl font-bold mb-4">🕒 Create Quick Poll</h2>
+    <div className="flex justify-center items-center min-h-[80vh]">
+      <div className="w-full max-w-lg bg-base-200 p-8 rounded-box shadow">
+        <h2 className="text-3xl font-bold mb-6 text-center">🕒 Create Quick Poll</h2>
 
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Your question..."
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          className="w-full p-3 rounded bg-neutral-800 text-white mb-2"
-        />
-
-        <div className="flex gap-2">
+        <div className="form-control mb-4">
+          <label className="label">
+            <span className="label-text">Question</span>
+          </label>
           <input
             type="text"
-            placeholder="Add option..."
-            value={newOption}
-            onChange={(e) => setNewOption(e.target.value)}
-            className="flex-grow p-3 rounded bg-neutral-800 text-white"
+            placeholder="Your question..."
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            className="input input-bordered w-full"
           />
-          <button
-            onClick={addOption}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Add
-          </button>
         </div>
+
+        <div className="form-control mb-4">
+          <label className="label">
+            <span className="label-text">Add Option</span>
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Option text..."
+              value={newOption}
+              onChange={(e) => setNewOption(e.target.value)}
+              className="input input-bordered flex-grow"
+            />
+            <button onClick={addOption} className="btn btn-primary">
+              Add
+            </button>
+          </div>
+        </div>
+
+        {options.length > 0 && (
+          <div className="mb-6">
+            <label className="label">
+              <span className="label-text">Your Options</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {options.map((opt, idx) => (
+                <div
+                  key={idx}
+                  className="badge badge-lg gap-2 bg-base-100 border border-base-300 cursor-pointer"
+                >
+                  {opt}
+                  <button
+                    onClick={() => {
+                      setOptions(options.filter((_, i) => i !== idx));
+                    }}
+                    className="ml-1 text-error"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+
+        <div className="form-control mb-6">
+          <label className="label">
+            <span className="label-text">Expires after (minutes)</span>
+          </label>
+          <input
+            type="number"
+            min="5"
+            max="1440"
+            value={ttl}
+            onChange={(e) => setTtl(Number(e.target.value))}
+            className="input input-bordered w-full"
+          />
+        </div>
+
+        <button onClick={handleSubmit} className="btn btn-success w-full">
+          ✅ Submit & Copy Link
+        </button>
       </div>
-
-      <ul className="mb-4">
-        {options.map((opt, idx) => (
-          <li key={idx} className="bg-neutral-700 p-2 rounded mb-1">{opt}</li>
-        ))}
-      </ul>
-
-      <div className="mb-4">
-        <label className="block mb-2">Expires after (minutes):</label>
-        <input
-          type="number"
-          min="5"
-          max="1440"
-          value={ttl}
-          onChange={(e) => setTtl(Number(e.target.value))}
-          className="w-full p-3 rounded bg-neutral-800 text-white"
-        />
-      </div>
-
-      <button
-        onClick={handleSubmit}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-      >
-        ✅ Submit & Copy Link
-      </button>
-    </section>
+    </div>
   );
 }

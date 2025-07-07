@@ -16,7 +16,15 @@ interface QuickPollData {
   options: PollOption[];
 }
 
-const colors = ["#B71C1C", "#8D6E63", "#616161", "#4CAF50", "#2196F3", "#FFC107", "#FF5722"];
+const colors = [
+  "bg-red-500",
+  "bg-orange-500",
+  "bg-yellow-500",
+  "bg-green-500",
+  "bg-blue-500",
+  "bg-purple-500",
+  "bg-pink-500",
+];
 
 export default function QuickPoll() {
   const [poll, setPoll] = useState<QuickPollData | null>(null);
@@ -26,21 +34,15 @@ export default function QuickPoll() {
   const quickPollId = searchParams.get("quickpoll");
   const { resetMode } = useModeStore();
 
-  // Load QuickPoll & join room
   useEffect(() => {
     if (quickPollId) {
-      console.log(`🔗 Loading QuickPoll: ${quickPollId}`);
       socket.emit("join-quickpoll", { pollId: quickPollId });
       socket.emit("get-quickpoll-by-id", { pollId: quickPollId });
     }
 
     socket.on("quickpoll-data", (data: QuickPollData | null) => {
-      console.log("📥 QuickPoll update:", data);
-      if (data) {
-        setPoll(data);
-      } else {
-        setPoll(null);
-      }
+      if (data) setPoll(data);
+      else setPoll(null);
     });
 
     return () => {
@@ -66,41 +68,40 @@ export default function QuickPoll() {
     window.history.pushState(null, "", "/");
   };
 
-  if (!quickPollId) return <p>No QuickPoll ID provided.</p>;
-  if (!poll) return <p>QuickPoll not found or expired.</p>;
+  if (!quickPollId) return <p className="text-center mt-10">No QuickPoll ID provided.</p>;
+  if (!poll) return <p className="text-center mt-10">QuickPoll not found or expired.</p>;
 
   return (
-    <section className="py-8">
-      <button
-        onClick={goBack}
-        className="mb-4 px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
-      >
-        ← Back
-      </button>
+    <div className="flex justify-center items-center min-h-[80vh]">
+      <div className="w-full max-w-lg bg-base-200 p-8 rounded-box shadow">
+        <button onClick={goBack} className="btn btn-sm btn-ghost mb-4">
+          ← Back
+        </button>
+        <h2 className="text-2xl font-bold mb-6 text-center">{poll.question_text}</h2>
 
-      <h2 className="text-2xl font-bold mb-4">{poll.question_text}</h2>
-      <div className="flex flex-col gap-4 mb-6">
-        {poll.options.map((opt, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleVote(idx)}
-            disabled={voted}
-            className="relative text-left p-3 rounded text-white overflow-hidden"
-            style={{ backgroundColor: colors[idx % colors.length] }}
-          >
-            <div
-              className="absolute top-0 left-0 h-full bg-black bg-opacity-20"
-              style={{
-                width: voted ? `${getPercent(opt.votes)}%` : "0%",
-                transition: "width 0.5s ease"
-              }}
-            />
-            <span className="relative z-10">
-              {opt.text} {voted && `– ${getPercent(opt.votes)}% (${opt.votes} votes)`}
-            </span>
-          </button>
-        ))}
+        <div className="flex flex-col gap-4">
+          {poll.options.map((opt, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleVote(idx)}
+              disabled={voted}
+              className={`btn relative text-white ${colors[idx % colors.length]} transition-all`}
+            >
+              <div
+                className="absolute top-0 left-0 h-full bg-black bg-opacity-20 rounded-box"
+                style={{
+                  width: voted ? `${getPercent(opt.votes)}%` : "0%",
+                  transition: "width 0.5s ease",
+                }}
+              />
+              <span className="relative z-10">
+                {opt.text}{" "}
+                {voted && `– ${getPercent(opt.votes)}% (${opt.votes} votes)`}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
