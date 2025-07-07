@@ -31,7 +31,7 @@ async function connectDB() {
     console.log("✅ Connected to DB:", db.databaseName);
     console.log("📂 Collections:", (await db.listCollections().toArray()).map(col => col.name));
 
-    // Create TTL indexes if not exists
+    // TTL
     await quickpollsCollection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
     await spinwheelsCollection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
@@ -90,36 +90,44 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
 
-  // === Normal Poll ===
+  // === Get single random poll ===
   socket.on("get-random-poll", async ({ category }) => {
     if (!pollsCollection) return;
 
-    const query = { approved: true };
-    if (category) query.category = category;
-
-    const count = await pollsCollection.countDocuments(query);
-    if (count === 0) {
-      console.warn(`⚠️ No polls found in: ${category || "any"}`);
-      socket.emit("poll-data", null);
-      return;
-    }
+    const match = { approved: true };
+    if (category) match.category = category;
 
     const polls = await pollsCollection.aggregate([
-      { $match: query },
+      { $match: match },
       { $sample: { size: 1 } }
     ]).toArray();
 
-    const poll = polls[0];
-    console.log("✅ Sending random poll:", poll._id);
-    socket.emit("poll-data", poll);
+    console.log(`✅ Sending random poll (${category}): ${polls.length}`);
+    socket.emit("poll-data", polls[0] || null);
   });
 
+  // === Get multiple random polls (related) ===
+  socket.on("get-random-polls", async ({ category, size }) => {
+    if (!pollsCollection) return;
+
+    const match = { approved: true, category };
+    const polls = await pollsCollection.aggregate([
+      { $match: match },
+      { $sample: { size: size || 5 } }
+    ]).toArray();
+
+    console.log(`🎯 Sending ${polls.length} random polls for category: ${category}`);
+    socket.emit("related-polls", polls);
+  });
+
+  // === Daily Poll ===
   socket.on("get-daily-poll", async () => {
     if (!pollsCollection) return;
     const poll = await pickDailyPoll();
     socket.emit("daily-poll", poll);
   });
 
+  // === Get Poll by ID ===
   socket.on("get-poll-by-id", async ({ pollId }) => {
     if (!pollsCollection) return;
     let objectId;
@@ -134,20 +142,41 @@ io.on("connection", (socket) => {
     socket.emit("poll-data", poll || null);
   });
 
-  socket.on("get-trending-polls", async () => {
+  // === Trending Polls ===
+  socket.on("get-trending-polls", async ({ category }) => {
     if (!pollsCollection) return;
 
+    const match = { approved: true };
+    if (category) match.category = category;
+
     const trending = await pollsCollection.aggregate([
-      { $match: { approved: true } },
+      { $match: match },
       { $addFields: { totalVotes: { $sum: "$options.votes" } } },
       { $sort: { totalVotes: -1, created_at: -1 } },
       { $limit: 5 }
     ]).toArray();
 
-    console.log(`🔥 Sending trending polls: ${trending.length}`);
+    console.log(`🔥 Sending trending polls (${category || "global"}): ${trending.length}`);
     socket.emit("trending-polls", trending);
   });
 
+  // === Latest Polls ===
+  socket.on("get-latest-polls", async ({ size }) => {
+    if (!pollsCollection) return;
+
+    const latest = await pollsCollection
+      .find({ approved: true })
+      .sort({ created_at: -1 })
+      .limit(size || 5)
+      .toArray();
+
+    console.log(`🆕 Sending latest polls (${latest.length})`);
+    socket.emit("latest-polls", latest);
+  });
+
+
+
+  // === Submit Poll ===
   socket.on("submit-poll", async (pollData) => {
     if (!pendingCollection) return;
 
@@ -163,6 +192,7 @@ io.on("connection", (socket) => {
     console.log(`✅ Poll submitted for review: ${result.insertedId}`);
   });
 
+  // === Vote ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
     if (!pollsCollection && !quickpollsCollection) return;
 
@@ -174,11 +204,9 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Try normal polls first
     let poll = await pollsCollection.findOne({ _id: objectId });
     let collection = pollsCollection;
 
-    // If not found, try quickpolls
     if (!poll) {
       poll = await quickpollsCollection.findOne({ _id: objectId });
       collection = quickpollsCollection;
@@ -249,7 +277,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1h TTL
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     const newWheel = {
       items,
@@ -260,11 +288,8 @@ io.on("connection", (socket) => {
     const result = await spinwheelsCollection.insertOne(newWheel);
 
     console.log(`🎡 SpinWheel created: ${result.insertedId}`);
-    console.log(`🔗 Share link: https://wouldyou.io/spin?id=${result.insertedId}`);
-
     socket.emit("spinwheel-created", { id: result.insertedId });
   });
-
 
   socket.on("get-spin-by-id", async ({ spinId }) => {
     if (!spinwheelsCollection) return;

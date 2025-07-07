@@ -8,7 +8,6 @@ export default function Header() {
   const router = useRouter();
   const { setMode, resetMode } = useModeStore();
 
-  // Dummy KPI data
   const kpis = [
     { title: "VOTES", value: "1,234", change: "+5%" },
     { title: "POLLS", value: "12", change: "+2%" },
@@ -18,7 +17,7 @@ export default function Header() {
   return (
     <header className="w-full sticky top-0 z-50 overflow-x-hidden">
       {/* Main Navbar */}
-      <div className="navbar bg-base-100 shadow container mx-auto px-4">
+      <div className="navbar w-full bg-base-100 shadow px-4 justify-between">
         <div className="flex-1">
           <button
             onClick={() => {

@@ -12,7 +12,7 @@ import DailyPoll from "@/components/DailyPoll";
 import ModesGrid from "@/components/ModesGrid";
 import Poll from "@/components/Poll";
 import QuickPoll from "@/components/QuickPoll";
-import CategoriesGrid from "@/components/CategoriesGrid";
+import PollsHome from "@/components/PollsHome";
 
 const SpinTheWheel = dynamic(() => import("@/components/SpinTheWheel"), { ssr: false });
 
@@ -34,7 +34,7 @@ function HomePageInner() {
       ) : spinId || mode === "spin" || activeMode === "spin" ? (
         <SpinTheWheel />
       ) : activeMode === "polls" ? (
-        <CategoriesGrid />
+        <PollsHome />
       ) : (
         <>
           <Hero />

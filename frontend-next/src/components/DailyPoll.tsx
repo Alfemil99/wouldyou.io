@@ -11,7 +11,7 @@ interface PollOption {
 interface Poll {
   _id: string;
   question_text: string;
-  options: PollOption[];
+  options?: PollOption[]; // Optional for extra safety!
 }
 
 export default function DailyPoll() {
@@ -20,7 +20,7 @@ export default function DailyPoll() {
 
   useEffect(() => {
     socket.emit("get-daily-poll");
-    socket.on("daily-poll", (data: Poll) => {
+    socket.on("daily-poll", (data: Poll | null) => {
       setPoll(data);
       setVoted(false);
     });
@@ -31,7 +31,7 @@ export default function DailyPoll() {
   }, []);
 
   const handleVote = (optionIndex: number) => {
-    if (!poll || voted) return;
+    if (!poll || !poll.options || voted) return;
 
     socket.emit("vote", { pollId: poll._id, optionIndex });
 
@@ -42,12 +42,12 @@ export default function DailyPoll() {
   };
 
   const getPercent = (votes: number) => {
-    if (!poll) return 0;
+    if (!poll || !poll.options) return 0;
     const total = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
     return total ? Math.round((votes / total) * 100) : 0;
   };
 
-  if (!poll) {
+  if (!poll || !poll.options || poll.options.length === 0) {
     return (
       <section className="w-full max-w-md mx-auto">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">

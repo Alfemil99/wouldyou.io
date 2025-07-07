@@ -11,7 +11,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-theme="night">
+    <html lang="en" data-theme="business">
       <body className="flex flex-col min-h-screen overflow-x-hidden">
         {/* DaisyUI Header */}
         <Header />

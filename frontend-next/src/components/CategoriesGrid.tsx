@@ -6,50 +6,54 @@ import Image from "next/image";
 
 const categories = [
   { name: "Anime", image: "/images/anime.png" },
-  { name: "Games", image: "/images/games.png" },
-  { name: "Entertainment", image: "/images/entertainment.png" },
-  { name: "Politics", image: "/images/politics.png" },
-  { name: "Funny", image: "/images/funny.png" },
-  { name: "➕ Add Your Own", image: "/images/add.svg" },
+  { name: "Gaming", image: "/images/gaming.png" },
+  { name: "Esports", image: "/images/esports.png" },
+  { name: "Movies & TV", image: "/images/movies_tv.png" },
+  { name: "Music", image: "/images/music.png" },
+  { name: "Memes & Internet", image: "/images/memes.png" },
+  { name: "Food & Drink", image: "/images/food_drink.png" },
+  { name: "Travel & Places", image: "/images/travel.png" },
+  { name: "Lifestyle & Trends", image: "/images/lifestyle.png" },
+  { name: "Relationships", image: "/images/relationships.png" },
+  { name: "Politics & Society", image: "/images/politics.png" },
+  { name: "Tech & Gadgets", image: "/images/tech.png" },
 ];
 
 export default function CategoriesGrid() {
   const { setMode } = useModeStore();
 
   const handleClick = (category: string) => {
-    if (category === "➕ Add Your Own") {
-      alert("Coming soon: Submit your own poll!");
-      return;
-    }
-
     socket.emit("get-random-poll", { category });
 
-    socket.once("poll-data", (poll) => {
+    const handlePoll = (poll: any) => {
       if (poll?._id) {
         window.history.pushState(null, "", `/?poll=${poll._id}`);
         setMode("poll");
       } else {
-        alert("No polls found in this category.");
+        alert(`No polls found in category: ${category}`);
       }
-    });
+    };
+
+    socket.once("poll-data", handlePoll);
   };
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-12 text-center">
       <h2 className="text-3xl font-bold mb-8 text-white">📂 Categories</h2>
+
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6 place-items-center">
         {categories.map((cat) => (
           <div
             key={cat.name}
             onClick={() => handleClick(cat.name)}
             className="
-            relative
-            w-full aspect-square max-w-full
-            sm:max-w-[12rem]
-            md:max-w-[15rem]
-            rounded-2xl overflow-hidden cursor-pointer group
-            border border-white/20 bg-white/10 backdrop-blur-md
-            transition-all hover:scale-105 hover:border-primary hover:shadow-lg
+              relative
+              w-full aspect-square max-w-full
+              sm:max-w-[12rem]
+              md:max-w-[15rem]
+              rounded-2xl overflow-hidden cursor-pointer group
+              border border-white/20 bg-white/10 backdrop-blur-md
+              transition-all hover:scale-105 hover:border-primary hover:shadow-lg
             "
           >
             <Image
