@@ -1,12 +1,10 @@
 // === index.js ===
-
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
-
 dotenv.config();
 
 // === MongoDB setup ===
@@ -64,10 +62,6 @@ async function getKPIStats() {
   };
 }
 
-
-
-
-
 // === Express setup ===
 const app = express();
 app.use(express.json());
@@ -114,7 +108,6 @@ const io = new Server(server, {
 });
 
 // === Handlers ===
-
 io.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
 
@@ -202,8 +195,6 @@ io.on("connection", (socket) => {
     socket.emit("latest-polls", latest);
   });
 
-
-
   // === Submit Poll ===
   socket.on("submit-poll", async (pollData) => {
     if (!pendingCollection) return;
@@ -220,9 +211,9 @@ io.on("connection", (socket) => {
     console.log(`✅ Poll submitted for review: ${result.insertedId}`);
   });
 
-  // === Vote ===
+  // === Vote (kun alm. polls) ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
-    if (!pollsCollection && !quickpollsCollection) return;
+    if (!pollsCollection) return;
 
     let objectId;
     try {
@@ -232,14 +223,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    let poll = await pollsCollection.findOne({ _id: objectId });
-    let collection = pollsCollection;
-
-    if (!poll) {
-      poll = await quickpollsCollection.findOne({ _id: objectId });
-      collection = quickpollsCollection;
-    }
-
+    const poll = await pollsCollection.findOne({ _id: objectId });
     if (!poll) {
       socket.emit("vote-result", { error: "Poll not found" });
       return;
@@ -250,12 +234,12 @@ io.on("connection", (socket) => {
       return;
     }
 
-    await collection.updateOne(
+    await pollsCollection.updateOne(
       { _id: objectId },
       { $inc: { [`options.${optionIndex}.votes`]: 1 } }
     );
 
-    const updatedPoll = await collection.findOne({ _id: objectId });
+    const updatedPoll = await pollsCollection.findOne({ _id: objectId });
     socket.emit("vote-result", updatedPoll);
   });
 
@@ -296,6 +280,43 @@ io.on("connection", (socket) => {
     socket.emit("quickpoll-data", poll || null);
   });
 
+  // === Join QuickPoll Room ===
+  socket.on("join-quickpoll", ({ pollId }) => {
+    socket.join(pollId);
+    console.log(`🔗 ${socket.id} joined QuickPoll room: ${pollId}`);
+  });
+
+  // === Leave QuickPoll Room ===
+  socket.on("leave-quickpoll", ({ pollId }) => {
+    socket.leave(pollId);
+    console.log(`🚪 ${socket.id} left QuickPoll room: ${pollId}`);
+  });
+
+  // === Vote on QuickPoll ===
+  socket.on("vote-quickpoll", async ({ pollId, optionIndex }) => {
+    if (!quickpollsCollection) return;
+
+    let objectId;
+    try {
+      objectId = new ObjectId(pollId.trim());
+    } catch (e) {
+      return;
+    }
+
+    const poll = await quickpollsCollection.findOne({ _id: objectId });
+    if (!poll) return;
+
+    await quickpollsCollection.updateOne(
+      { _id: objectId },
+      { $inc: { [`options.${optionIndex}.votes`]: 1 } }
+    );
+
+    const updatedPoll = await quickpollsCollection.findOne({ _id: objectId });
+
+    // 🟢 Send opdateret poll til ALLE i room
+    io.to(pollId).emit("quickpoll-data", updatedPoll);
+  });
+
   // === Spin The Wheel ===
   socket.on("submit-spinwheel", async ({ items }) => {
     if (!spinwheelsCollection) return;
@@ -333,20 +354,6 @@ io.on("connection", (socket) => {
 
     const wheel = await spinwheelsCollection.findOne({ _id: objectId });
     socket.emit("spinwheel-data", wheel || null);
-  });
-
-  // === Send KPI stats hver 5. sekund ===
-  const kpiInterval = setInterval(async () => {
-    const stats = await getKPIStats();
-    io.emit("kpi-update", stats);
-    console.log(`📊 Sent KPI update:`, stats);
-  }, 5000);
-
-  socket.on("disconnect", () => {
-    console.log(`❌ Client disconnected: ${socket.id}`);
-    if (io.engine.clientsCount === 0) {
-      clearInterval(kpiInterval);
-    }
   });
 
 });

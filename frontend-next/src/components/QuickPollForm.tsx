@@ -35,9 +35,9 @@ export default function QuickPollForm() {
     socket.once("quickpoll-created", ({ id }) => {
       const url = `${window.location.origin}/?quickpoll=${id}`;
       navigator.clipboard.writeText(url).then(() => {
-        alert(`✅ QuickPoll created! Link copied: ${url}`);
+        alert(`✅ QuickPoll created!\nLink copied to clipboard:\n${url}`);
         resetMode();
-        window.history.pushState(null, "", "/");
+        window.location.href = `/?quickpoll=${id}`;
       });
     });
   };
@@ -94,7 +94,7 @@ export default function QuickPollForm() {
         onClick={handleSubmit}
         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
-        ✅ Submit QuickPoll & Copy Link
+        ✅ Submit & Copy Link
       </button>
     </section>
   );

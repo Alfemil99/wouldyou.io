@@ -26,37 +26,33 @@ export default function QuickPoll() {
   const quickPollId = searchParams.get("quickpoll");
   const { resetMode } = useModeStore();
 
-  // Load QuickPoll
+  // Load QuickPoll & join room
   useEffect(() => {
     if (quickPollId) {
       console.log(`🔗 Loading QuickPoll: ${quickPollId}`);
+      socket.emit("join-quickpoll", { pollId: quickPollId });
       socket.emit("get-quickpoll-by-id", { pollId: quickPollId });
     }
 
     socket.on("quickpoll-data", (data: QuickPollData | null) => {
-      console.log("📥 QuickPoll loaded:", data);
+      console.log("📥 QuickPoll update:", data);
       if (data) {
         setPoll(data);
-        setVoted(false);
       } else {
         setPoll(null);
       }
     });
 
     return () => {
+      socket.emit("leave-quickpoll", { pollId: quickPollId });
       socket.off("quickpoll-data");
     };
   }, [quickPollId]);
 
   const handleVote = (index: number) => {
     if (!poll || voted) return;
-    socket.emit("vote", { pollId: poll._id, optionIndex: index });
-
-    socket.once("vote-result", (result: QuickPollData) => {
-      console.log("📊 QuickPoll vote result:", result);
-      setPoll(result);
-      setVoted(true);
-    });
+    socket.emit("vote-quickpoll", { pollId: poll._id, optionIndex: index });
+    setVoted(true);
   };
 
   const getPercent = (votes: number) => {
