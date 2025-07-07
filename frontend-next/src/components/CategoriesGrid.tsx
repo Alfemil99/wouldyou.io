@@ -19,13 +19,19 @@ const categories = [
   { name: "Tech & Gadgets", image: "/images/tech.png" },
 ];
 
+// ✅ Tilføj en Poll type
+type Poll = {
+  _id?: string;
+};
+
 export default function CategoriesGrid() {
   const { setMode } = useModeStore();
 
   const handleClick = (category: string) => {
     socket.emit("get-random-poll", { category });
 
-    const handlePoll = (poll: any) => {
+    // ✅ Brug din type Poll her:
+    const handlePoll = (poll: Poll) => {
       if (poll?._id) {
         window.history.pushState(null, "", `/?poll=${poll._id}`);
         setMode("poll");
