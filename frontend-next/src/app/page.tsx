@@ -12,6 +12,7 @@ import DailyPoll from "@/components/DailyPoll";
 import ModesGrid from "@/components/ModesGrid";
 import Poll from "@/components/Poll";
 import QuickPoll from "@/components/QuickPoll";
+import QuickPollForm from "@/components/QuickPollForm";
 import PollsHome from "@/components/PollsHome";
 
 const SpinTheWheel = dynamic(() => import("@/components/SpinTheWheel"), { ssr: false });
@@ -29,8 +30,10 @@ function HomePageInner() {
     <>
       {pollId ? (
         <Poll />
-      ) : quickPollId || activeMode === "quickpoll" ? (
-        <QuickPoll />
+      ) : quickPollId ? (
+        <QuickPoll />  // Kun hvis ?quickpoll=ID er sat
+      ) : activeMode === "quickpoll" ? (
+        <QuickPollForm /> // Nu viser du formularen!
       ) : spinId || mode === "spin" || activeMode === "spin" ? (
         <SpinTheWheel />
       ) : activeMode === "polls" ? (
