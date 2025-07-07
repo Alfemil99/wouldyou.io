@@ -3,10 +3,29 @@
   themes: all;
 }
 
+/* === 1) Always hide horizontal overflow === */
 html, body {
-  @apply select-none;
+  overflow-x: hidden; /* 🚫 Ingen horisontal scroll */
+  width: 100%;
 }
 
-input, textarea {
-  user-select: text;
+/* === 3) Images and slides must not overflow === */
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+.swiper, .swiper-slide {
+  max-width: 100%;
+}
+
+/* === 4) Body must be relative if you har absolute bg === */
+body {
+  position: relative; /* Radial glow needs this */
+}
+
+/* === 5) Remove unwanted whitespace nowrap */
+.kpi-bar {
+  white-space: normal;
+  overflow-x: hidden;
 }
