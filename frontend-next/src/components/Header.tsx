@@ -43,24 +43,22 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="w-full sticky top-0 z-50">
+    <header className="w-full sticky top-0 z-50 bg-base-100 border-b border-base-300 shadow-sm">
       {/* === Navbar === */}
-      <div className="navbar w-full max-w-7xl mx-auto flex flex-wrap justify-between items-center bg-base-100 border-b border-base-300 shadow-sm px-4">
+      <div className="flex items-center justify-between w-full max-w-7xl mx-auto px-4 py-2">
         {/* Logo */}
-        <div className="flex-1">
-          <button
-            onClick={() => {
-              router.push("/");
-              resetMode();
-            }}
-            className="btn btn-ghost normal-case text-lg md:text-xl"
-          >
-            WOULDYOU.IO
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            router.push("/");
+            resetMode();
+          }}
+          className="btn btn-ghost normal-case text-lg md:text-xl"
+        >
+          WOULDYOU.IO
+        </button>
 
         {/* Mode icons */}
-        <div className="flex flex-wrap gap-1 md:gap-2">
+        <div className="flex items-center gap-2 flex-nowrap overflow-x-auto">
           <button
             onClick={() => {
               router.push("/?mode=polls");
@@ -121,13 +119,15 @@ export default function Header() {
       </div>
 
       {/* === Slim horizontal KPI Bar === */}
-      <div className="w-full bg-base-200 flex flex-wrap justify-center items-center gap-4 text-xs px-4 py-1 border-b border-base-300">
-        {kpis.map((kpi) => (
-          <div key={kpi.title} className="flex items-baseline gap-1">
-            <span className="opacity-60">{kpi.title}:</span>
-            <span className="font-semibold">{kpi.value}</span>
-          </div>
-        ))}
+      <div className="w-full bg-base-200 border-t border-base-300">
+        <div className="w-full max-w-7xl mx-auto flex justify-center gap-6 px-4 py-1 text-xs text-base-content/70">
+          {kpis.map((kpi) => (
+            <div key={kpi.title} className="flex items-baseline gap-1">
+              <span className="opacity-60">{kpi.title}:</span>
+              <span className="font-semibold">{kpi.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </header>
   );
