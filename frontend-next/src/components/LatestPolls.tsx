@@ -18,50 +18,61 @@ export default function LatestPolls() {
   useEffect(() => {
     socket.emit("get-latest-polls", { size: 5 });
 
-    // 👇 ALDRIG inline her — altid gem i const:
-    const handleLatest = (data: Poll[]) => setPolls(data);
+    const handleLatest = (data: Poll[]) => {
+      setPolls(data);
+    };
 
     socket.on("latest-polls", handleLatest);
 
-    // ✅ Korrekt cleanup:
     return () => {
       socket.off("latest-polls", handleLatest);
     };
   }, []);
 
+  if (polls.length === 0) {
+    return (
+      <section className="w-full max-w-md mx-auto">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          🆕 Latest Polls
+        </h2>
+        <p className="text-sm opacity-70">No latest polls yet.</p>
+      </section>
+    );
+  }
+
   return (
     <section className="w-full max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+      <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
         🆕 Latest Polls
       </h2>
 
-      {polls.length > 0 ? (
-        <Swiper
-          modules={[Autoplay, Pagination]}
-          slidesPerView={1}
-          loop={true}
-          autoplay={{ delay: 4000 }}
-          pagination={{ clickable: true }}
-          className="rounded-2xl"
-        >
-          {polls.map((poll) => (
-            <SwiperSlide key={poll._id}>
-              <div
-                onClick={() =>
-                  (window.location.href = `/?poll=${poll._id}`)
-                }
-                className="rounded-2xl border border-base-300 bg-base-200 p-6 shadow flex flex-col justify-center h-[250px] cursor-pointer hover:ring-1 hover:ring-primary transition"
-              >
-                <h3 className="text-lg font-semibold mb-2 line-clamp-4">
-                  {poll.question_text}
-                </h3>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      ) : (
-        <p className="text-sm opacity-70">No latest polls yet.</p>
-      )}
+      <Swiper
+        modules={[Autoplay, Pagination]}
+        slidesPerView={1}
+        loop={true}
+        autoplay={{ delay: 5000 }}
+        pagination={{ clickable: true }}
+        className="rounded-box"
+      >
+        {polls.map((poll) => (
+          <SwiperSlide key={poll._id}>
+            <div
+              onClick={() =>
+                (window.location.href = `/?poll=${poll._id}`)
+              }
+              className="
+                card border border-base-300 bg-base-200 p-4 
+                shadow-sm rounded-box cursor-pointer flex flex-col justify-center 
+                h-[200px] hover:ring-2 hover:ring-primary transition
+              "
+            >
+              <h3 className="text-base font-semibold line-clamp-4">
+                {poll.question_text}
+              </h3>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
     </section>
   );
 }

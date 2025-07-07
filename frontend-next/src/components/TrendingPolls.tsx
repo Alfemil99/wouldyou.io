@@ -7,16 +7,14 @@ import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 
-// === Type: Poll ===
 interface Poll {
   _id: string;
   question_text: string;
   totalVotes: number;
 }
 
-// === Type: Props ===
 interface TrendingPollsProps {
-  category?: string; // 💡 category er valgfri
+  category?: string;
 }
 
 export default function TrendingPolls({ category }: TrendingPollsProps) {
@@ -40,7 +38,7 @@ export default function TrendingPolls({ category }: TrendingPollsProps) {
 
   return (
     <section className="w-full max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+      <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
         🔥 Trending Polls {category && `in ${category}`}
       </h2>
 
@@ -48,9 +46,9 @@ export default function TrendingPolls({ category }: TrendingPollsProps) {
         modules={[Autoplay, Pagination]}
         slidesPerView={1}
         loop={true}
-        autoplay={{ delay: 4000 }}
+        autoplay={{ delay: 5000 }}
         pagination={{ clickable: true }}
-        className="rounded-2xl"
+        className="rounded-box"
       >
         {polls.map((poll) => (
           <SwiperSlide key={poll._id}>
@@ -58,12 +56,16 @@ export default function TrendingPolls({ category }: TrendingPollsProps) {
               onClick={() =>
                 (window.location.href = `/?poll=${poll._id}`)
               }
-              className="rounded-2xl border border-base-300 bg-base-200 p-6 shadow flex flex-col justify-center h-[250px] cursor-pointer hover:ring-1 hover:ring-primary transition"
+              className="
+                card border border-base-300 bg-base-200 p-6 
+                shadow-sm rounded-box cursor-pointer flex flex-col 
+                justify-center items-center h-[200px] hover:ring-2 hover:ring-primary transition
+              "
             >
-              <h3 className="text-lg font-semibold mb-2 line-clamp-4">
+              <h3 className="text-base font-semibold text-center mb-2 line-clamp-4">
                 {poll.question_text}
               </h3>
-              <p className="text-sm opacity-70">{poll.totalVotes} votes</p>
+              <p className="text-xs opacity-70">{poll.totalVotes} votes</p>
             </div>
           </SwiperSlide>
         ))}

@@ -17,15 +17,14 @@ type KPIUpdate = {
   users: number;
 };
 
-
 export default function Header() {
   const router = useRouter();
   const { setMode, resetMode } = useModeStore();
 
   const [kpis, setKpis] = useState<KPI[]>([
-    { title: "VOTES", value: "0"},
-    { title: "POLLS", value: "0"},
-    { title: "USERS", value: "0"},
+    { title: "VOTES", value: "0" },
+    { title: "POLLS", value: "0" },
+    { title: "USERS", value: "0" },
   ]);
 
   useEffect(() => {
@@ -44,9 +43,9 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="w-full sticky top-0 z-50 overflow-x-hidden">
+    <header className="w-full sticky top-0 z-50">
       {/* === Navbar === */}
-      <div className="navbar w-full bg-base-100 shadow px-4 justify-between">
+      <div className="navbar bg-base-100 border-b border-base-300 shadow-sm px-4">
         <div className="flex-1">
           <button
             onClick={() => {
@@ -59,79 +58,72 @@ export default function Header() {
           </button>
         </div>
 
-        <div className="flex-none flex gap-1 flex-wrap justify-end">
+        <div className="flex-none flex gap-1 md:gap-2 flex-wrap">
           <button
             onClick={() => {
               router.push("/?mode=polls");
               setMode("polls");
             }}
-            className="btn btn-ghost p-1 md:p-2"
+            className="btn btn-ghost btn-sm"
           >
             <Image
               src="/images/polls.svg"
               alt="Polls"
-              width={20}
-              height={20}
-              className="md:w-[28px] md:h-[28px]"
+              width={24}
+              height={24}
             />
           </button>
-
           <button
             onClick={() => {
               router.push("/?mode=quickpoll");
               setMode("quickpoll");
             }}
-            className="btn btn-ghost p-1 md:p-2"
+            className="btn btn-ghost btn-sm"
           >
             <Image
               src="/images/quickpoll.svg"
               alt="Quickpoll"
-              width={20}
-              height={20}
-              className="md:w-[28px] md:h-[28px]"
+              width={24}
+              height={24}
             />
           </button>
-
           <button
             onClick={() => {
               router.push("/?mode=spin");
               setMode("spin");
             }}
-            className="btn btn-ghost p-1 md:p-2"
+            className="btn btn-ghost btn-sm"
           >
             <Image
               src="/images/spin.svg"
               alt="Spin"
-              width={20}
-              height={20}
-              className="md:w-[28px] md:h-[28px]"
+              width={24}
+              height={24}
             />
           </button>
-
           <button
             onClick={() => {
               router.push("/?mode=wyr");
               setMode("wyr");
             }}
-            className="btn btn-ghost p-1 md:p-2"
+            className="btn btn-ghost btn-sm"
           >
             <Image
               src="/images/wyr.svg"
               alt="Would You Rather"
-              width={20}
-              height={20}
-              className="md:w-[28px] md:h-[28px]"
+              width={24}
+              height={24}
             />
           </button>
         </div>
       </div>
 
       {/* === Slim horizontal KPI Bar === */}
-      <div className="flex flex-wrap justify-center items-center gap-4 px-4 py-1 bg-base-200 text-xs shadow overflow-x-auto whitespace-nowrap">
+      <div className="w-full bg-base-200 flex flex-wrap justify-center items-center gap-4 text-xs px-4 py-1 border-b border-base-300">
         {kpis.map((kpi) => (
           <div key={kpi.title} className="flex items-baseline gap-1">
-            <span className="opacity-70">{kpi.title}:</span>
-            <span className="font-bold">{kpi.value}</span>
+            <span className="opacity-60">{kpi.title}:</span>
+            <span className="font-semibold">{kpi.value}</span>
           </div>
         ))}
       </div>

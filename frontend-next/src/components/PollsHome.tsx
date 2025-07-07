@@ -7,22 +7,25 @@ import SubmitPollFormModal from "@/components/SubmitPollFormModal";
 
 export default function PollsHome() {
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-12 text-center">
-      {/* Top grid: Trending + Latest */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 items-start">
-        <div className="w-full max-w-md mx-auto">
+    <section className="w-full max-w-7xl mx-auto px-4 py-12 flex flex-col gap-12">
+      {/* === Top Grid: Trending + Latest === */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="card bg-base-200 border border-base-300 shadow rounded-box p-6">
           <TrendingPolls />
         </div>
-        <div className="w-full max-w-md mx-auto">
+        <div className="card bg-base-200 border border-base-300 shadow rounded-box p-6">
           <LatestPolls />
         </div>
       </div>
 
-      {/* Categories grid */}
-      <CategoriesGrid />
+      {/* === Categories === */}
+      <div className="card bg-base-200 border border-base-300 shadow rounded-box p-6">
+        <CategoriesGrid />
+      </div>
 
-      {/* CTA: Submit Poll Modal */}
-      <div className="mt-12">
+      {/* === Submit Poll === */}
+      <div className="card bg-base-200 border border-base-300 shadow rounded-box p-6 mx-auto text-center">
+        <h2 className="text-2xl font-bold mb-4">Got a question? 🤔</h2>
         <SubmitPollFormModal />
       </div>
     </section>

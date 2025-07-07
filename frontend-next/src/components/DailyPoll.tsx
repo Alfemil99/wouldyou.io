@@ -11,8 +11,18 @@ interface PollOption {
 interface Poll {
   _id: string;
   question_text: string;
-  options?: PollOption[]; // Optional for extra safety!
+  options?: PollOption[];
 }
+
+const colors = [
+  "bg-red-500",
+  "bg-orange-500",
+  "bg-yellow-500",
+  "bg-green-500",
+  "bg-blue-500",
+  "bg-purple-500",
+  "bg-pink-500",
+];
 
 export default function DailyPoll() {
   const [poll, setPoll] = useState<Poll | null>(null);
@@ -64,28 +74,26 @@ export default function DailyPoll() {
         📅 Daily Poll
       </h2>
 
-      <div
-        className="rounded-2xl border border-base-300 bg-base-200 p-6 shadow flex flex-col gap-4"
-        style={{ minHeight: "250px" }}
-      >
+      <div className="card bg-base-200 shadow rounded-box p-6 flex flex-col gap-4 min-h-[250px]">
         <h3 className="text-lg font-semibold">{poll.question_text}</h3>
+
         {poll.options.map((opt, idx) => (
           <button
             key={idx}
             disabled={voted}
             onClick={() => handleVote(idx)}
-            className="relative w-full px-4 py-3 rounded-full border border-base-300 bg-base-100 text-left overflow-hidden transition hover:bg-primary/20"
+            className={`relative w-full text-left btn text-white ${colors[idx % colors.length]} transition`}
           >
             <div
-              className="absolute inset-0 bg-primary/50 transition-all"
+              className="absolute inset-0 bg-black bg-opacity-20 rounded-box"
               style={{
                 width: voted ? `${getPercent(opt.votes)}%` : "0%",
+                transition: "width 0.5s ease",
               }}
             />
-            <span className="relative z-10 font-medium">
+            <span className="relative z-10">
               {opt.text}{" "}
-              {voted &&
-                `– ${getPercent(opt.votes)}% (${opt.votes} votes)`}
+              {voted && `– ${getPercent(opt.votes)}% (${opt.votes} votes)`}
             </span>
           </button>
         ))}

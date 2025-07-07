@@ -43,9 +43,11 @@ export default function QuickPollForm() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh]">
-      <div className="w-full max-w-lg bg-base-200 p-8 rounded-box shadow">
-        <h2 className="text-3xl font-bold mb-6 text-center">🕒 Create Quick Poll</h2>
+    <section className="flex justify-center items-center min-h-[80vh] px-4">
+      <div className="card bg-base-200 shadow rounded-box p-8 w-full max-w-lg">
+        <h2 className="text-3xl font-bold mb-6 text-center">
+          🕒 Create Quick Poll
+        </h2>
 
         <div className="form-control mb-4">
           <label className="label">
@@ -91,9 +93,9 @@ export default function QuickPollForm() {
                 >
                   {opt}
                   <button
-                    onClick={() => {
-                      setOptions(options.filter((_, i) => i !== idx));
-                    }}
+                    onClick={() =>
+                      setOptions(options.filter((_, i) => i !== idx))
+                    }
                     className="ml-1 text-error"
                   >
                     ✕
@@ -122,6 +124,6 @@ export default function QuickPollForm() {
           ✅ Submit & Copy Link
         </button>
       </div>
-    </div>
+    </section>
   );
 }

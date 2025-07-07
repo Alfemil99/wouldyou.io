@@ -21,7 +21,7 @@ export default function ModesGrid() {
   };
 
   return (
-    <section className="w-full max-w-[350px] mx-auto" style={{ minHeight: "300px" }}>
+    <section className="w-full max-w-[350px] mx-auto min-h-[300px]">
       <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">🎮 Modes</h2>
       <div className="grid grid-cols-2 gap-4">
         {modes.map((m) => (
@@ -29,16 +29,9 @@ export default function ModesGrid() {
             key={m.name}
             onClick={() => handleClick(m.mode)}
             className="
-              flex flex-col items-center justify-center
-              gap-2
-              p-4
-              rounded-2xl
-              border border-base-300
-              bg-base-200
-              shadow
-              transition
-              cursor-pointer
-              hover:ring-2 hover:ring-primary hover:scale-105
+              card border border-base-300 bg-base-200 shadow-md p-4 
+              flex flex-col items-center justify-center gap-2 cursor-pointer transition 
+              hover:ring-2 hover:ring-primary hover:scale-105 rounded-box
             "
           >
             <Image
@@ -48,7 +41,7 @@ export default function ModesGrid() {
               height={50}
               className="mb-1"
             />
-            <span className="font-medium text-center">{m.name}</span>
+            <span className="font-medium text-center text-sm">{m.name}</span>
           </div>
         ))}
       </div>

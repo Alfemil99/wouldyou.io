@@ -31,24 +31,27 @@ function HomePageInner() {
       {pollId ? (
         <Poll />
       ) : quickPollId ? (
-        <QuickPoll />  // Kun hvis ?quickpoll=ID er sat
+        <QuickPoll />
       ) : activeMode === "quickpoll" ? (
-        <QuickPollForm /> // Nu viser du formularen!
+        <QuickPollForm />
       ) : spinId || mode === "spin" || activeMode === "spin" ? (
         <SpinTheWheel />
       ) : activeMode === "polls" ? (
         <PollsHome />
       ) : (
         <>
-          <Hero />
+          <div className="w-full max-w-7xl mx-auto px-4">
+            <Hero />
+          </div>
+
           <section className="w-full max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8 items-start justify-items-center">
-            <section className="w-full max-w-[350px] mx-auto" style={{ minHeight: "300px" }}>
+            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[300px]">
               <TrendingPolls />
             </section>
-            <section className="w-full max-w-[350px] mx-auto" style={{ minHeight: "300px" }}>
+            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[300px]">
               <ModesGrid />
             </section>
-            <section className="w-full max-w-[350px] mx-auto" style={{ minHeight: "300px" }}>
+            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[300px]">
               <DailyPoll />
             </section>
           </section>

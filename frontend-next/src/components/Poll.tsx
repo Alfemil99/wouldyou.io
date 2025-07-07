@@ -19,15 +19,24 @@ interface PollData {
   category: string;
 }
 
+const colors = [
+  "bg-red-500",
+  "bg-orange-500",
+  "bg-yellow-500",
+  "bg-green-500",
+  "bg-blue-500",
+  "bg-purple-500",
+  "bg-pink-500",
+];
+
 export default function Poll() {
   const [poll, setPoll] = useState<PollData | null>(null);
   const [voted, setVoted] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [relatedPolls, setRelatedPolls] = useState<PollData[]>([]);
 
   const searchParams = useSearchParams();
   const pollId = searchParams.get("poll");
-  const { resetMode } = useModeStore();
+  const { setMode } = useModeStore();
 
   // === Load poll by ID ===
   useEffect(() => {
@@ -51,23 +60,6 @@ export default function Poll() {
       socket.off("poll-data", handlePollData);
     };
   }, [pollId]);
-
-  // === Load related polls ===
-  useEffect(() => {
-    if (activeCategory) {
-      socket.emit("get-random-polls", { category: activeCategory, size: 5 });
-
-      const handleRelated = (polls: PollData[]) => {
-        setRelatedPolls(polls);
-      };
-
-      socket.on("related-polls", handleRelated);
-
-      return () => {
-        socket.off("related-polls", handleRelated);
-      };
-    }
-  }, [activeCategory]);
 
   const handleVote = (index: number) => {
     if (!poll || voted) return;
@@ -93,8 +85,8 @@ export default function Poll() {
   };
 
   const goBack = () => {
-    resetMode();
-    window.history.pushState(null, "", "/");
+    setMode("polls");
+    window.history.pushState(null, "", "/?mode=polls");
   };
 
   const nextPoll = () => {
@@ -108,85 +100,55 @@ export default function Poll() {
 
   return (
     <section className="w-full max-w-lg mx-auto px-4 py-8 text-center">
-      {/* Poll Navigation */}
-      <div className="flex flex-wrap gap-2 mb-4 justify-center">
-        <button
-          onClick={goBack}
-          className="px-3 py-2 rounded-full border border-white/20 bg-white/10 text-sm hover:bg-primary/20 transition"
-        >
-          ← Back
-        </button>
-        <button
-          onClick={copyLink}
-          className="px-3 py-2 rounded-full border border-white/20 bg-white/10 text-sm hover:bg-primary/20 transition"
-        >
-          🔗 Share
-        </button>
-        <button
-          onClick={nextPoll}
-          className="px-3 py-2 rounded-full border border-white/20 bg-white/10 text-sm hover:bg-primary/20 transition"
-        >
-          → Next Poll
-        </button>
-      </div>
-
-      {/* Poll Card */}
-      <div className="rounded-2xl border border-white/20 bg-white/10 p-4 md:p-6 flex flex-col gap-3 items-center text-center">
-        <h2 className="text-xl md:text-2xl font-bold mb-2">
+      {/* === Poll Card === */}
+      <div className="card bg-base-200 shadow rounded-box p-8 flex flex-col gap-6">
+        <h2 className="text-xl md:text-2xl font-bold text-center leading-tight">
           {poll.question_text}
         </h2>
 
-        <div className="w-full flex flex-col gap-3">
+        <div className="flex flex-col gap-3 w-full">
           {poll.options.map((opt, idx) => (
             <button
               key={idx}
               onClick={() => handleVote(idx)}
               disabled={voted}
-              className="relative w-full px-4 py-2 rounded-full border border-white/20 bg-white/10 text-sm overflow-hidden transition hover:bg-primary/20"
+              className={`relative btn btn-block justify-start text-white ${colors[idx % colors.length]}`}
             >
               <div
-                className="absolute inset-0 bg-primary/50 transition-all"
-                style={{ width: voted ? `${getPercent(opt.votes)}%` : "0%" }}
+                className="absolute inset-0 bg-black bg-opacity-20 rounded-box"
+                style={{
+                  width: voted ? `${getPercent(opt.votes)}%` : "0%",
+                  transition: "width 0.5s ease",
+                }}
               />
               <span className="relative z-10 font-medium">
                 {opt.text}{" "}
-                {voted &&
-                  `– ${getPercent(opt.votes)}% (${opt.votes} votes)`}
+                {voted && `– ${getPercent(opt.votes)}% (${opt.votes} votes)`}
               </span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* CTA: Submit Your Own Poll */}
+      {/* === Poll Navigation === */}
+      <div className="flex flex-wrap gap-2 mt-4 justify-center flex-nowrap">
+        <button onClick={goBack} className="btn btn-sm btn-ghost">
+          ← Back to Polls
+        </button>
+        <button onClick={copyLink} className="btn btn-sm btn-outline">
+          🔗 Share
+        </button>
+        <button onClick={nextPoll} className="btn btn-sm btn-primary">
+          → Next Poll
+        </button>
+      </div>
+
+      {/* === CTA: Submit Your Own Poll === */}
       <div className="mt-6">
         <SubmitPollFormModal category={activeCategory || ""} />
       </div>
 
-      {/* Related Polls */}
-      {relatedPolls.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-base font-semibold mb-2">
-            Other polls in {activeCategory}
-          </h3>
-          <div className="flex overflow-x-auto gap-2">
-            {relatedPolls.map((preview) => (
-              <button
-                key={preview._id}
-                onClick={() => {
-                  window.history.pushState(null, "", `/?poll=${preview._id}`);
-                  socket.emit("get-poll-by-id", { pollId: preview._id });
-                }}
-                className="min-w-[180px] p-3 rounded-lg border border-white/10 bg-white/5 text-sm hover:bg-primary/10 transition"
-              >
-                {preview.question_text.slice(0, 50)}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Trending Polls */}
+      {/* === Trending Polls === */}
       {activeCategory && (
         <div className="mt-8">
           <TrendingPolls category={activeCategory} />

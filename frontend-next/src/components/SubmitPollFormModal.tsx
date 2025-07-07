@@ -19,7 +19,7 @@ const categories = [
 ];
 
 interface SubmitPollFormModalProps {
-  category?: string; // Optional prop
+  category?: string;
 }
 
 export default function SubmitPollFormModal({
@@ -29,7 +29,6 @@ export default function SubmitPollFormModal({
   const [category, setCategory] = useState(initialCategory || "");
   const [options, setOptions] = useState<string[]>(["", ""]);
 
-  // If prop changes → update local state too:
   useEffect(() => {
     setCategory(initialCategory || "");
   }, [initialCategory]);
@@ -92,7 +91,9 @@ export default function SubmitPollFormModal({
       <input type="checkbox" id="submitPollModal" className="modal-toggle" />
       <div className="modal">
         <div className="modal-box w-full max-w-lg text-left">
-          <h3 className="font-bold text-lg mb-4 text-center">Submit Your Own Poll</h3>
+          <h3 className="font-bold text-lg mb-4 text-center">
+            Submit Your Own Poll
+          </h3>
 
           <div className="flex flex-col gap-4">
             <input
@@ -144,12 +145,15 @@ export default function SubmitPollFormModal({
             </div>
           </div>
 
-          <div className="modal-action">
-            <button onClick={handleSubmit} className="btn btn-primary">
-              ✅ Submit
+          <div className="modal-action flex flex-col md:flex-row gap-2">
+            <button
+              onClick={handleSubmit}
+              className="btn btn-success w-full md:w-auto"
+            >
+              ✅ Submit Poll
             </button>
-            <label htmlFor="submitPollModal" className="btn">
-              ✕ Close
+            <label htmlFor="submitPollModal" className="btn btn-ghost">
+              ✕ Cancel
             </label>
           </div>
         </div>

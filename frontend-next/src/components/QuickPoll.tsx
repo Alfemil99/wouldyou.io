@@ -14,7 +14,7 @@ interface QuickPollData {
   _id?: string;
   question_text: string;
   options: PollOption[];
-  expiresAt?: string; // 👈 husk at have denne i din backend!
+  expiresAt?: string;
 }
 
 const colors = [
@@ -36,7 +36,6 @@ export default function QuickPoll() {
   const quickPollId = searchParams.get("quickpoll");
   const { resetMode } = useModeStore();
 
-  // Join room, load poll & handle updates
   useEffect(() => {
     if (quickPollId) {
       socket.emit("join-quickpoll", { pollId: quickPollId });
@@ -44,8 +43,7 @@ export default function QuickPoll() {
     }
 
     socket.on("quickpoll-data", (data: QuickPollData | null) => {
-      if (data) setPoll(data);
-      else setPoll(null);
+      setPoll(data ?? null);
     });
 
     return () => {
@@ -54,23 +52,18 @@ export default function QuickPoll() {
     };
   }, [quickPollId]);
 
-  // Countdown timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
-
     if (poll?.expiresAt) {
       const expiresAt = new Date(poll.expiresAt).getTime();
-
       const update = () => {
         const now = Date.now();
         const diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
         setTimeLeft(diff);
       };
-
       update();
       interval = setInterval(update, 1000);
     }
-
     return () => clearInterval(interval);
   }, [poll]);
 
@@ -91,25 +84,38 @@ export default function QuickPoll() {
     window.history.pushState(null, "", "/");
   };
 
-  if (!quickPollId) return <p className="text-center mt-10">No QuickPoll ID provided.</p>;
-  if (!poll) return <p className="text-center mt-10">QuickPoll not found or expired.</p>;
+  if (!quickPollId)
+    return <p className="text-center mt-10">No QuickPoll ID provided.</p>;
+  if (!poll)
+    return <p className="text-center mt-10">QuickPoll not found or expired.</p>;
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh]">
-      <div className="w-full max-w-lg bg-base-200 p-8 rounded-box shadow">
+    <section className="flex justify-center items-center min-h-[80vh] px-4">
+      <div className="card bg-base-200 shadow rounded-box p-8 w-full max-w-lg">
         <button onClick={goBack} className="btn btn-sm btn-ghost mb-4">
           ← Back
         </button>
 
-        <h2 className="text-2xl font-bold mb-2 text-center">{poll.question_text}</h2>
+        <h2 className="text-2xl font-bold mb-2 text-center">
+          {poll.question_text}
+        </h2>
 
         {poll.expiresAt && timeLeft > 0 && (
           <div className="text-center mb-6">
             <span className="font-semibold">⏳ Ends in: </span>
             <span className="countdown text-xl">
-              <span style={{ "--value": Math.floor(timeLeft / 60) } as React.CSSProperties} />m
-              :
-              <span style={{ "--value": timeLeft % 60 } as React.CSSProperties} />s
+              <span
+                style={
+                  { "--value": Math.floor(timeLeft / 60) } as React.CSSProperties
+                }
+              />{" "}
+              m :{" "}
+              <span
+                style={
+                  { "--value": timeLeft % 60 } as React.CSSProperties
+                }
+              />{" "}
+              s
             </span>
           </div>
         )}
@@ -120,16 +126,16 @@ export default function QuickPoll() {
               key={idx}
               onClick={() => handleVote(idx)}
               disabled={voted}
-              className={`btn relative text-white ${colors[idx % colors.length]} transition-all`}
+              className={`relative btn btn-block text-white ${colors[idx % colors.length]}`}
             >
               <div
-                className="absolute top-0 left-0 h-full bg-black bg-opacity-20 rounded-box"
+                className="absolute inset-0 bg-black bg-opacity-20 rounded-box"
                 style={{
                   width: voted ? `${getPercent(opt.votes)}%` : "0%",
                   transition: "width 0.5s ease",
                 }}
               />
-              <span className="relative z-10">
+              <span className="relative z-10 font-medium">
                 {opt.text}{" "}
                 {voted && `– ${getPercent(opt.votes)}% (${opt.votes} votes)`}
               </span>
@@ -141,16 +147,16 @@ export default function QuickPoll() {
           <button
             onClick={() => {
               const url = window.location.href;
-              navigator.clipboard.writeText(url).then(() => {
-                alert(`✅ Link copied to clipboard:\n${url}`);
-              });
+              navigator.clipboard.writeText(url).then(() =>
+                alert(`✅ Link copied to clipboard:\n${url}`)
+              );
             }}
-            className="btn btn-outline btn-primary"
+            className="btn btn-sm btn-outline btn-primary"
           >
             🔗 Share this QuickPoll
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
