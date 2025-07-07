@@ -45,7 +45,8 @@ export default function Header() {
   return (
     <header className="w-full sticky top-0 z-50">
       {/* === Navbar === */}
-      <div className="navbar bg-base-100 border-b border-base-300 shadow-sm px-4">
+      <div className="navbar w-full max-w-7xl mx-auto flex flex-wrap justify-between items-center bg-base-100 border-b border-base-300 shadow-sm px-4">
+        {/* Logo */}
         <div className="flex-1">
           <button
             onClick={() => {
@@ -58,7 +59,8 @@ export default function Header() {
           </button>
         </div>
 
-        <div className="flex-none flex gap-1 md:gap-2 flex-wrap">
+        {/* Mode icons */}
+        <div className="flex flex-wrap gap-1 md:gap-2">
           <button
             onClick={() => {
               router.push("/?mode=polls");
@@ -69,8 +71,8 @@ export default function Header() {
             <Image
               src="/images/polls.svg"
               alt="Polls"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
             />
           </button>
           <button
@@ -83,8 +85,8 @@ export default function Header() {
             <Image
               src="/images/quickpoll.svg"
               alt="Quickpoll"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
             />
           </button>
           <button
@@ -97,8 +99,8 @@ export default function Header() {
             <Image
               src="/images/spin.svg"
               alt="Spin"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
             />
           </button>
           <button
@@ -111,8 +113,8 @@ export default function Header() {
             <Image
               src="/images/wyr.svg"
               alt="Would You Rather"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
             />
           </button>
         </div>
