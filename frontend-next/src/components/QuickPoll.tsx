@@ -136,6 +136,20 @@ export default function QuickPoll() {
             </button>
           ))}
         </div>
+
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => {
+              const url = window.location.href;
+              navigator.clipboard.writeText(url).then(() => {
+                alert(`✅ Link copied to clipboard:\n${url}`);
+              });
+            }}
+            className="btn btn-outline btn-primary"
+          >
+            🔗 Share this QuickPoll
+          </button>
+        </div>
       </div>
     </div>
   );
