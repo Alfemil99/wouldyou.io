@@ -47,15 +47,23 @@ export default function Header() {
       {/* === Navbar === */}
       <div className="flex items-center justify-between w-full max-w-7xl mx-auto px-4 py-2">
         {/* Logo */}
-        <button
-          onClick={() => {
-            router.push("/");
-            resetMode();
-          }}
-          className="btn btn-ghost normal-case text-base sm:text-lg md:text-xl"
-        >
-          WOULDYOU.IO
-        </button>
+      {/* Logo + Navn */}
+      <button
+        onClick={() => {
+          router.push("/");
+          resetMode();
+        }}
+        className="btn btn-ghost normal-case text-base sm:text-lg md:text-xl flex items-center gap-2"
+      >
+        <Image
+          src="/logo.svg"
+          alt="Logo"
+          width={30}
+          height={30}
+          className="invert"
+        />
+        WOULDYOU.IO
+      </button>
 
         {/* Mode icons */}
         <div className="flex items-center gap-1 sm:gap-2 flex-nowrap overflow-hidden w-auto">

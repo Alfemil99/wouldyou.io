@@ -6,6 +6,10 @@ import cors from "cors";
 import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
 dotenv.config();
+import OpenAI from "openai";
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 // === MongoDB setup ===
 const uri = process.env.MONGODB_URI || "YOUR_MONGODB_URI";
@@ -201,18 +205,31 @@ io.on("connection", (socket) => {
 
   // === Submit Poll ===
   socket.on("submit-poll", async (pollData) => {
-    if (!pendingCollection) return;
+    if (!pollsCollection || !pendingCollection) return;
+
+    const moderation = await openai.moderations.create({
+      model: "omni-moderation-latest",
+      input: pollData.question_text
+    });
+
+    const flagged = moderation.results[0].flagged;
 
     const newPoll = {
       category: pollData.category,
       question_text: pollData.question_text,
       options: pollData.options.map(text => ({ text, votes: 0 })),
-      approved: false,
+      approved: !flagged,
+      moderation: moderation.results[0], // valgfri, gem info
       created_at: new Date()
     };
 
-    const result = await pendingCollection.insertOne(newPoll);
-    console.log(`✅ Poll submitted for review: ${result.insertedId}`);
+    if (flagged) {
+      const result = await pendingCollection.insertOne(newPoll);
+      console.log(`⚠️ Poll flagged, saved as pending: ${result.insertedId}`);
+    } else {
+      const result = await pollsCollection.insertOne(newPoll);
+      console.log(`✅ Poll auto-approved: ${result.insertedId}`);
+    }
   });
 
   // === Vote (kun alm. polls) ===
@@ -412,20 +429,32 @@ io.on("connection", (socket) => {
 
   // === Submit WYR ===
   socket.on("submit-wyr", async (data) => {
-    if (!wyrPendingCollection) return;
+    if (!wyrCollection || !wyrPendingCollection) return;
+
+    const moderation = await openai.moderations.create({
+      model: "omni-moderation-latest",
+      input: data.question_text.trim()
+    });
+
+    const flagged = moderation.results[0].flagged;
 
     const newWYR = {
       question_text: data.question_text.trim(),
       optionA: { text: data.optionA.trim(), votes: 0 },
       optionB: { text: data.optionB.trim(), votes: 0 },
-      approved: false,
+      approved: !flagged,
+      moderation: moderation.results[0],
       createdAt: new Date(),
     };
 
-    const result = await wyrPendingCollection.insertOne(newWYR);
-    console.log(`✅ WYR submitted for review: ${result.insertedId}`);
+    if (flagged) {
+      const result = await wyrPendingCollection.insertOne(newWYR);
+      console.log(`⚠️ WYR flagged, saved as pending: ${result.insertedId}`);
+    } else {
+      const result = await wyrCollection.insertOne(newWYR);
+      console.log(`✅ WYR auto-approved: ${result.insertedId}`);
+    }
   });
-
 
 });
 

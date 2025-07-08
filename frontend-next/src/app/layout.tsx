@@ -4,8 +4,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata = {
-  title: "WouldYou.IO",
+  title: "WOULDYOU.IO",
   description: "Vote, share & see what the world thinks!",
+  icons: {
+    icon: "/logo.svg", // eller .ico eller .svg
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
