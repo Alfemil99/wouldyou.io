@@ -14,8 +14,11 @@ import Poll from "@/components/Poll";
 import QuickPoll from "@/components/QuickPoll";
 import QuickPollForm from "@/components/QuickPollForm";
 import PollsHome from "@/components/PollsHome";
+import WouldYouRather from "@/components/WouldYouRather"; // ✅ NY!
 
-const SpinTheWheel = dynamic(() => import("@/components/SpinTheWheel"), { ssr: false });
+const SpinTheWheel = dynamic(() => import("@/components/SpinTheWheel"), {
+  ssr: false,
+});
 
 function HomePageInner() {
   const searchParams = useSearchParams();
@@ -36,6 +39,8 @@ function HomePageInner() {
         <QuickPollForm />
       ) : spinId || mode === "spin" || activeMode === "spin" ? (
         <SpinTheWheel />
+      ) : activeMode === "wyr" || mode === "wyr" ? (
+        <WouldYouRather /> // ✅ NYT: Viser Would You Rather form!
       ) : activeMode === "polls" ? (
         <PollsHome />
       ) : (

@@ -15,6 +15,8 @@ let pollsCollection;
 let pendingCollection;
 let quickpollsCollection;
 let spinwheelsCollection;
+let wyrCollection;
+let wyrPendingCollection;
 
 async function connectDB() {
   try {
@@ -25,6 +27,8 @@ async function connectDB() {
     pendingCollection = db.collection("pending_polls");
     quickpollsCollection = db.collection("quickpolls");
     spinwheelsCollection = db.collection("spinwheels");
+    wyrCollection = db.collection("wouldyourather");
+    wyrPendingCollection = db.collection("wyr_pending");
 
     console.log("✅ Connected to DB:", db.databaseName);
     console.log("📂 Collections:", (await db.listCollections().toArray()).map(col => col.name));
@@ -356,8 +360,74 @@ io.on("connection", (socket) => {
     socket.emit("spinwheel-data", wheel || null);
   });
 
-});
+  // === Join WYR room ===
+  socket.on("join-wyr", () => {
+    socket.join("wyr-room");
+    console.log(`🔗 ${socket.id} joined WYR room`);
+  });
 
+  // === Get Random WYR ===
+  socket.on("get-random-wyr", async () => {
+    if (!wyrCollection) return;
+
+    const wyr = await wyrCollection.aggregate([{ $sample: { size: 1 } }]).toArray();
+    const startedAt = Date.now(); // server-timestamp for synk
+
+    console.log(`✅ Sending random WYR: ${wyr[0]?._id}`);
+
+    // Broadcast til alle i rummet, så alle får samme question + tid
+    io.to("wyr-room").emit("wyr-data", {
+      wyr: wyr[0] || null,
+      startedAt
+    });
+  });
+
+  // === Vote on WYR ===
+  socket.on("vote-wyr", async ({ wyrId, option }) => {
+    if (!wyrCollection) return;
+
+    let objectId;
+    try {
+      objectId = new ObjectId(wyrId.trim());
+    } catch (e) {
+      console.warn(`⚠️ Invalid WYR ID: ${wyrId}`);
+      return;
+    }
+
+    const field = option === "A" ? "optionA.votes" : "optionB.votes";
+
+    const update = await wyrCollection.updateOne(
+      { _id: objectId },
+      { $inc: { [field]: 1 } }
+    );
+
+    if (update.modifiedCount === 1) {
+      const updated = await wyrCollection.findOne({ _id: objectId });
+      io.to("wyr-room").emit("wyr-result", updated);
+      console.log(`✅ Vote registered: ${option} on ${wyrId}`);
+    } else {
+      console.warn(`⚠️ Update failed for ${wyrId}`);
+    }
+  });
+
+  // === Submit WYR ===
+  socket.on("submit-wyr", async (data) => {
+    if (!wyrPendingCollection) return;
+
+    const newWYR = {
+      question_text: data.question_text.trim(),
+      optionA: { text: data.optionA.trim(), votes: 0 },
+      optionB: { text: data.optionB.trim(), votes: 0 },
+      approved: false,
+      createdAt: new Date(),
+    };
+
+    const result = await wyrPendingCollection.insertOne(newWYR);
+    console.log(`✅ WYR submitted for review: ${result.insertedId}`);
+  });
+
+
+});
 
 // ✅ === GLOBALT INTERVAL ===
 setInterval(async () => {
