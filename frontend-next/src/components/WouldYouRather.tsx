@@ -11,6 +11,11 @@ interface WYR {
   optionB: { text: string; votes: number };
 }
 
+interface WYRData {
+  wyr: WYR;
+  startedAt: number;
+}
+
 export default function WouldYouRather() {
   const [wyr, setWYR] = useState<WYR | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -23,9 +28,9 @@ export default function WouldYouRather() {
     socket.emit("join-wyr");
     socket.emit("get-random-wyr");
 
-    const handleWYR = (data: any) => {
+    const handleWYR = (data: WYRData) => {
       console.log("✅ New WYR:", data);
-      if (data?.wyr) {
+      if (data?.wyr && data?.startedAt) {
         setWYR(data.wyr);
         setStartedAt(data.startedAt);
         setVoted(false);
@@ -113,12 +118,9 @@ export default function WouldYouRather() {
                   opt === "A" ? "bg-red-500" : "bg-blue-500"
                 }`}
               >
-                {/* Progress fill */}
                 {selected && (
                   <div
-                    className={`absolute left-0 top-0 h-full ${
-                      opt === "A" ? "bg-black/20" : "bg-black/20"
-                    }`}
+                    className="absolute left-0 top-0 h-full bg-black/20"
                     style={{
                       width: `${percent}%`,
                       transition: "width 0.5s ease",
