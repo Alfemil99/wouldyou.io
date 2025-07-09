@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import socket from "@/lib/socket";
 import { useSearchParams } from "next/navigation";
 
-// Dynamisk import for SSR-safe roulette
+// Dynamic import for SSR-safe roulette
 const Wheel = dynamic(
   () => import("react-custom-roulette").then((mod) => mod.Wheel),
   { ssr: false }
@@ -21,7 +21,7 @@ export default function SpinTheWheel() {
   const searchParams = useSearchParams();
   const spinId = searchParams.get("id");
 
-  // Load wheel fra DB hvis ID er sat
+  // Load wheel from DB if ID is set
   useEffect(() => {
     if (spinId) {
       socket.emit("get-spin-by-id", { spinId });
@@ -29,7 +29,7 @@ export default function SpinTheWheel() {
         if (wheel) {
           setOptions(wheel.items || []);
         } else {
-          alert("Hjulet findes ikke eller er udløbet.");
+          alert("The wheel does not exist or has expired.");
         }
       });
     }
@@ -55,7 +55,7 @@ export default function SpinTheWheel() {
 
   const handleSpinClick = () => {
     if (data.length < 2) {
-      alert("Tilføj mindst 2 muligheder for at spinne!");
+      alert("Please add at least 2 options to spin!");
       return;
     }
     const newPrizeNumber = Math.floor(Math.random() * data.length);
@@ -65,14 +65,14 @@ export default function SpinTheWheel() {
 
   const handleSaveWheel = () => {
     if (data.length < 2) {
-      alert("Tilføj mindst 2 muligheder for at gemme!");
+      alert("Please add at least 2 options to save!");
       return;
     }
     socket.emit("submit-spinwheel", { items: options });
     socket.once("spinwheel-created", ({ id }) => {
       const shareLink = `${window.location.origin}/?mode=spin&id=${id}`;
       navigator.clipboard.writeText(shareLink).then(() => {
-        alert(`✅ Dit hjul er gemt i 1 time!\nLinket er kopieret:\n${shareLink}`);
+        alert(`✅ Your wheel is saved for 1 hour!\nLink copied:\n${shareLink}`);
       });
     });
   };
@@ -86,11 +86,11 @@ export default function SpinTheWheel() {
           type="text"
           value={newOption}
           onChange={(e) => setNewOption(e.target.value)}
-          placeholder="Indtast en mulighed"
+          placeholder="Enter an option"
           className="input input-bordered flex-grow"
         />
         <button type="submit" className="btn btn-primary">
-          Tilføj
+          Add
         </button>
       </form>
 
@@ -126,7 +126,7 @@ export default function SpinTheWheel() {
       )}
 
       {data.length < 2 && (
-        <p className="opacity-70 mb-6">Tilføj mindst 2 valgmuligheder for at spinne!</p>
+        <p className="opacity-70 mb-6">Please add at least 2 options to spin!</p>
       )}
 
       <div className="flex gap-4">
@@ -134,13 +134,13 @@ export default function SpinTheWheel() {
           SPIN!
         </button>
         <button onClick={handleSaveWheel} className="btn btn-outline btn-primary">
-          💾 Gem & Share
+          💾 Save & Share
         </button>
       </div>
 
       {winner && (
         <div className="mt-4 text-xl font-bold">
-          🎉 Vinderen er: {winner}
+          🎉 Winner: {winner}
         </div>
       )}
     </section>

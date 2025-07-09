@@ -42,32 +42,43 @@ export default function CategoriesGrid() {
   };
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-12 text-center">
-      <h2 className="text-3xl font-bold mb-8">📂 Categories</h2>
+    <section className="w-full max-w-7xl mx-auto px-4">
+      {/* Fjernet overskriften for clean look */}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 place-items-center">
+      <div className="
+        grid 
+        grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]
+        gap-4 sm:gap-6 md:gap-8 
+        place-items-center
+      ">
         {categories.map((cat) => (
           <div
             key={cat.name}
             onClick={() => handleClick(cat.name)}
             className="
-              relative
-              w-full aspect-square max-w-full
-              sm:max-w-[12rem]
-              md:max-w-[15rem]
+              relative w-full aspect-square 
+              max-w-full sm:max-w-[12rem] md:max-w-[15rem]
               rounded-box overflow-hidden cursor-pointer group
-              bg-base-200 border border-base-300 shadow transition-all
-              hover:scale-105 hover:border-primary hover:shadow-lg
+              bg-base-200 border border-base-300 shadow-md transition-all duration-200
+              hover:scale-105 hover:border-primary hover:ring-2 hover:ring-primary hover:shadow-lg
             "
           >
             <Image
               src={cat.image}
               alt={cat.name}
               fill
-              className="object-cover opacity-40 group-hover:opacity-30 transition"
+              className="object-cover opacity-40 group-hover:opacity-30 transition-all duration-200"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-black/10 group-hover:from-black/30 transition"></div>
-            <span className="relative z-10 flex items-center justify-center h-full text-base-content font-semibold text-xl text-center px-4">
+            <div className="
+              absolute inset-0 bg-gradient-to-t 
+              from-black/50 to-black/10 
+              group-hover:from-black/30 
+              transition-all duration-200
+            "></div>
+            <span className="
+              relative z-10 flex items-center justify-center h-full 
+              text-base-content font-semibold text-xl text-center px-4
+            ">
               {cat.name}
             </span>
           </div>
