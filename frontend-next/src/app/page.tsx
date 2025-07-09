@@ -7,7 +7,6 @@ import { useModeStore } from "@/lib/useModeStore";
 import dynamic from "next/dynamic";
 
 import Hero from "@/components/Hero";
-import TrendingPolls from "@/components/TrendingPolls";
 import DailyPoll from "@/components/DailyPoll";
 import ModesGrid from "@/components/ModesGrid";
 import Poll from "@/components/Poll";
