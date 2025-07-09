@@ -14,9 +14,12 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-theme="dracula">
       <head>
-        {/* ✅ Ekstra meta hvis du vil */}
+        <title>WOULDYOU.IO</title>
+        <meta name="description" content="Vote, share & see what the world thinks!" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" href="/logo.svg" sizes="any" />
       </head>
       <body className="relative flex flex-col min-h-screen overflow-x-hidden bg-base-100 text-base-content">
         

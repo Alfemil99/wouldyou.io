@@ -57,13 +57,12 @@ export default function LatestPolls() {
         {polls.map((poll) => (
           <SwiperSlide key={poll._id}>
             <div
-              onClick={() =>
-                (window.location.href = `/?poll=${poll._id}`)
-              }
+              onClick={() => (window.location.href = `/?poll=${poll._id}`)}
               className="
-                card border border-base-300 bg-base-200 p-4 
-                shadow-sm rounded-box cursor-pointer flex flex-col justify-center 
-                h-[200px] hover:ring-2 hover:ring-primary transition
+                card border border-base-300 bg-base-200 p-6 
+                shadow-md rounded-box cursor-pointer flex flex-col 
+                justify-center items-center h-[200px]
+                transition hover:ring-2 hover:ring-primary hover:scale-95
               "
             >
               <h3 className="text-base font-semibold line-clamp-4">

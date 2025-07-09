@@ -15,6 +15,7 @@ import QuickPoll from "@/components/QuickPoll";
 import QuickPollForm from "@/components/QuickPollForm";
 import PollsHome from "@/components/PollsHome";
 import WouldYouRather from "@/components/WouldYouRather"; // ✅ NY!
+import PollsTabs from "@/components/PollsTabs";
 
 const SpinTheWheel = dynamic(() => import("@/components/SpinTheWheel"), {
   ssr: false,
@@ -44,23 +45,42 @@ function HomePageInner() {
       ) : activeMode === "polls" ? (
         <PollsHome />
       ) : (
-        <>
-          <div className="w-full max-w-7xl mx-auto px-4">
-            <Hero />
-          </div>
+      <>
+        <div className="w-full max-w-7xl mx-auto px-4 pb-8">
+          <Hero />
+        </div>
 
-          <section className="w-full max-w-7xl mx-auto px-4 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-start justify-items-center">
-            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[250px]">
-              <TrendingPolls />
-            </section>
-            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[250px]">
-              <ModesGrid />
-            </section>
-            <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[250px]">
-              <DailyPoll />
-            </section>
+        {/* === Content Grid === */}
+        <section className="
+          w-full max-w-7xl mx-auto px-4
+          grid grid-cols-1 md:grid-cols-3 
+          gap-6 md:gap-8
+          items-start justify-items-stretch
+          pb-12
+        ">
+          {/* Trending Polls */}
+          <section className="card bg-base-200 shadow rounded-box p-4 w-full max-w-[350px] min-h-[250px]">
+            <PollsTabs />
           </section>
-        </>
+
+          {/* Modes Grid */}
+          <section className="
+            card bg-base-200 shadow rounded-box p-6
+            w-full h-full
+          ">
+            <ModesGrid />
+          </section>
+
+          {/* Daily Poll */}
+          <section className="
+            card bg-base-200 shadow rounded-box p-6
+            w-full h-full
+          ">
+            <DailyPoll />
+          </section>
+        </section>
+      </>
+
       )}
     </>
   );
