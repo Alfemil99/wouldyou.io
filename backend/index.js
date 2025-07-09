@@ -6,10 +6,6 @@ import cors from "cors";
 import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
 dotenv.config();
-import OpenAI from "openai";
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
 
 // === MongoDB setup ===
 const uri = process.env.MONGODB_URI || "YOUR_MONGODB_URI";
@@ -203,53 +199,21 @@ io.on("connection", (socket) => {
     socket.emit("latest-polls", latest);
   });
 
+  // === Submit Poll ===
   socket.on("submit-poll", async (pollData) => {
-    if (!pollsCollection || !pendingCollection) return;
+    if (!pendingCollection) return;
 
-    try {
-      const inputText = pollData.question_text + " " + pollData.options.join(" ");
-      const moderation = await openai.moderations.create({
-        model: "omni-moderation-latest",
-        input: inputText
-      });
+    const newPoll = {
+      category: pollData.category,
+      question_text: pollData.question_text,
+      options: pollData.options.map(text => ({ text, votes: 0 })),
+      approved: false,
+      created_at: new Date()
+    };
 
-      const flagged = moderation.results[0].flagged;
-
-      const newPoll = {
-        category: pollData.category,
-        question_text: pollData.question_text,
-        options: pollData.options.map(text => ({ text, votes: 0 })),
-        approved: !flagged,
-        moderation: {
-          flagged,
-          categories: moderation.results[0].categories
-        },
-        created_at: new Date()
-      };
-
-      let result;
-      if (flagged) {
-        result = await pendingCollection.insertOne(newPoll);
-        console.log(`⚠️ Poll flagged, saved as pending: ${result.insertedId}`);
-      } else {
-        result = await pollsCollection.insertOne(newPoll);
-        console.log(`✅ Poll auto-approved: ${result.insertedId}`);
-      }
-
-      socket.emit("poll-status", {
-        status: flagged ? "pending" : "approved",
-        id: result.insertedId
-      });
-
-    } catch (err) {
-      console.error("❌ Error in submit-poll:", err);
-      socket.emit("poll-status", {
-        status: "error",
-        message: err.message
-      });
-    }
+    const result = await pendingCollection.insertOne(newPoll);
+    console.log(`✅ Poll submitted for review: ${result.insertedId}`);
   });
-
 
   // === Vote (kun alm. polls) ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
@@ -448,32 +412,20 @@ io.on("connection", (socket) => {
 
   // === Submit WYR ===
   socket.on("submit-wyr", async (data) => {
-    if (!wyrCollection || !wyrPendingCollection) return;
-
-    const moderation = await openai.moderations.create({
-      model: "omni-moderation-latest",
-      input: data.question_text.trim()
-    });
-
-    const flagged = moderation.results[0].flagged;
+    if (!wyrPendingCollection) return;
 
     const newWYR = {
       question_text: data.question_text.trim(),
       optionA: { text: data.optionA.trim(), votes: 0 },
       optionB: { text: data.optionB.trim(), votes: 0 },
-      approved: !flagged,
-      moderation: moderation.results[0],
+      approved: false,
       createdAt: new Date(),
     };
 
-    if (flagged) {
-      const result = await wyrPendingCollection.insertOne(newWYR);
-      console.log(`⚠️ WYR flagged, saved as pending: ${result.insertedId}`);
-    } else {
-      const result = await wyrCollection.insertOne(newWYR);
-      console.log(`✅ WYR auto-approved: ${result.insertedId}`);
-    }
+    const result = await wyrPendingCollection.insertOne(newWYR);
+    console.log(`✅ WYR submitted for review: ${result.insertedId}`);
   });
+
 
 });
 
