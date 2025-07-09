@@ -203,34 +203,53 @@ io.on("connection", (socket) => {
     socket.emit("latest-polls", latest);
   });
 
-  // === Submit Poll ===
   socket.on("submit-poll", async (pollData) => {
     if (!pollsCollection || !pendingCollection) return;
 
-    const moderation = await openai.moderations.create({
-      model: "omni-moderation-latest",
-      input: pollData.question_text
-    });
+    try {
+      const inputText = pollData.question_text + " " + pollData.options.join(" ");
+      const moderation = await openai.moderations.create({
+        model: "omni-moderation-latest",
+        input: inputText
+      });
 
-    const flagged = moderation.results[0].flagged;
+      const flagged = moderation.results[0].flagged;
 
-    const newPoll = {
-      category: pollData.category,
-      question_text: pollData.question_text,
-      options: pollData.options.map(text => ({ text, votes: 0 })),
-      approved: !flagged,
-      moderation: moderation.results[0], // valgfri, gem info
-      created_at: new Date()
-    };
+      const newPoll = {
+        category: pollData.category,
+        question_text: pollData.question_text,
+        options: pollData.options.map(text => ({ text, votes: 0 })),
+        approved: !flagged,
+        moderation: {
+          flagged,
+          categories: moderation.results[0].categories
+        },
+        created_at: new Date()
+      };
 
-    if (flagged) {
-      const result = await pendingCollection.insertOne(newPoll);
-      console.log(`⚠️ Poll flagged, saved as pending: ${result.insertedId}`);
-    } else {
-      const result = await pollsCollection.insertOne(newPoll);
-      console.log(`✅ Poll auto-approved: ${result.insertedId}`);
+      let result;
+      if (flagged) {
+        result = await pendingCollection.insertOne(newPoll);
+        console.log(`⚠️ Poll flagged, saved as pending: ${result.insertedId}`);
+      } else {
+        result = await pollsCollection.insertOne(newPoll);
+        console.log(`✅ Poll auto-approved: ${result.insertedId}`);
+      }
+
+      socket.emit("poll-status", {
+        status: flagged ? "pending" : "approved",
+        id: result.insertedId
+      });
+
+    } catch (err) {
+      console.error("❌ Error in submit-poll:", err);
+      socket.emit("poll-status", {
+        status: "error",
+        message: err.message
+      });
     }
   });
+
 
   // === Vote (kun alm. polls) ===
   socket.on("vote", async ({ pollId, optionIndex }) => {
